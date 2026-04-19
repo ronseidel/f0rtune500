@@ -35,8 +35,17 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260418-07.html
+       File: f0rtune500-20260418-08.html
        Changelog:
+       v08 (2026-04-18) — Hero copy rewrite. "Beautifully formatted"
+                          was self-aggrandizing AI-ese; changed to
+                          "cleanly formatted". Swapped "CV" → "resume"
+                          for consistency with the rest of the UI.
+                          Added the tagline as a second paragraph with
+                          extra weight and an accent-green italic
+                          emphasis on "didn't" — ties the app to the
+                          OG image and makes the satire angle
+                          load-bearing copy instead of a footnote.
        v07 (2026-04-18) — Social/SEO pass. Added description meta,
                           Open Graph tags, Twitter summary_large_image
                           card. Favicon is inline SVG — a Space Mono
@@ -168,6 +177,15 @@
       color: var(--muted);
       margin: 0;
       max-width: 560px;
+    }
+    .hero p + p {
+      margin-top: 10px;
+      color: var(--ink);
+      font-weight: 500;
+    }
+    .hero p em {
+      font-style: italic;
+      color: var(--accent);
     }
 
     form.card {
@@ -469,7 +487,8 @@
     <section class="form-view" id="formView">
       <div class="hero">
         <h1>Your resume, but at <span class="defunct">iconic</span> defunct American companies.</h1>
-        <p>Fill out the form. Get a beautifully formatted CV full of bankrupt Fortune 500 names. Print it, share it, frame it.</p>
+        <p>Fill out the form. Get a cleanly formatted resume full of bankrupt Fortune 500 names. Print it, share it, frame it.</p>
+        <p>No one can prove you <em>didn't</em> work at these companies.</p>
       </div>
 
       <form class="card" id="resumeForm" novalidate>
@@ -549,7 +568,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://r0n.info" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260418-07</span>
+      an <a href="https://r0n.info" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260418-08</span>
     </div>
   </div>
 
