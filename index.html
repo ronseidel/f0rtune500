@@ -1,0 +1,1230 @@
+<!doctype html>
+<html lang="en" style="background:#F9F9F9;color:#034D32;">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#F9F9F9" />
+  <title>f0rtune500 — satirical resume generator</title>
+
+  <!-- Description -->
+  <meta name="description" content="No one can prove you didn't work at these companies. Fill out a form, get a cleanly formatted CV full of bankrupt Fortune 500 names." />
+
+  <!-- Favicon (Space Mono dotted zero, 0fam brand mark) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='rgb(3,77,50)'/><ellipse cx='16' cy='16' rx='6' ry='8' fill='none' stroke='rgb(249,249,249)' stroke-width='3'/><circle cx='16' cy='16' r='1.4' fill='rgb(249,249,249)'/></svg>" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://f0rtune500.app" />
+  <meta property="og:title" content="f0rtune500 — satirical resume generator" />
+  <meta property="og:description" content="No one can prove you didn't work at these companies. Fill out a form, get a cleanly formatted CV full of bankrupt Fortune 500 names." />
+  <meta property="og:image" content="https://f0rtune500.app/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="f0rtune500" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="f0rtune500 — satirical resume generator" />
+  <meta name="twitter:description" content="No one can prove you didn't work at these companies." />
+  <meta name="twitter:image" content="https://f0rtune500.app/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* =============================================================
+       f0rtune500 — satirical resume generator (0fam)
+       File: f0rtune500-20260418-07.html
+       Changelog:
+       v07 (2026-04-18) — Social/SEO pass. Added description meta,
+                          Open Graph tags, Twitter summary_large_image
+                          card. Favicon is inline SVG — a Space Mono
+                          dotted zero in white on ink green (no file
+                          needed, per 0fam brand rule that the dotted
+                          zero IS the mark). OG image is an external
+                          1200×630 PNG (og-image.png) with the
+                          typographic wordmark + tagline treatment,
+                          matching the t00t pattern. URL hardcoded to
+                          https://f0rtune500.app.
+       v06 (2026-04-18) — Pluralized 7 reference lines. Singular
+                          ("Obituary on request") read as if you only
+                          have one reference; plural implies a whole
+                          fleet of dead/indicted people, which is the
+                          joke. Kept mass nouns as-is (probate,
+                          litigation, counsel, next of kin).
+       v05 (2026-04-18) — PDF filename now includes user's name. On
+                          submit, document.title is rewritten to
+                          "{Name} — {original title}", which browsers
+                          use as the default PDF filename in the print
+                          dialog. Restored on "Start over". No JS API
+                          exists to set the print filename directly —
+                          title is the only portable lever short of
+                          shipping a client-side PDF library.
+       v04 (2026-04-18) — References overhaul. Removed 3 weak lines
+                          (exhumation/cold storage/microfiche — too
+                          high-brow, too inside-baseball, or off-theme).
+                          Expanded to 16 lines across two registers:
+                          estate/probate (dead) and legal/prison (in
+                          trouble). Better fit for bankrupt-Fortune-500
+                          source material — half these companies had
+                          perp walks.
+       v03 (2026-04-18) — Generate button full-width on desktop too
+                          (was right-aligned on wide screens, full on
+                          mobile only). Unified the styling.
+       v02 (2026-04-18) — UI polish per mobile test feedback.
+                          • Removed redundant dotted-circle mark
+                            (Space Mono's dotted zero is the mark,
+                            per 0fam brand rule). Wordmark now stands
+                            alone with three 0s in accent green.
+                          • Version moved to its own line in footer,
+                            no leading separator.
+                          • Generate button full-width on mobile.
+                          • Privacy text forces line break between
+                            sentences on mobile.
+       v01 (2026-04-18) — Initial build. Fork of b00t.
+                          Form view + resume view. 8 industries, 5
+                          career levels. Reverse-chron date logic
+                          capped at bankruptcy year, gaps closed for
+                          continuous employment. Browser-print PDF
+                          export. Dark mode handled (meta + media +
+                          inline html/body + JS enforcer).
+       ============================================================= */
+
+    :root {
+      --bg:       #F9F9F9;
+      --ink:      #034D32;
+      --accent:   #028454;
+      --accent-bg:#E4F3EE;
+      --border:   #C0DDD4;
+      --mint:     #00BD78;
+      --muted:    #6B7F77;
+      --paper:    #FFFFFF;
+      --shadow:   0 1px 2px rgba(3, 77, 50, 0.06), 0 8px 24px rgba(3, 77, 50, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:       #0E1613;
+        --ink:      #E4F3EE;
+        --accent:   #00BD78;
+        --accent-bg:#14352A;
+        --border:   #1F3A30;
+        --muted:    #8FA59C;
+        --paper:    #141D1A;
+        --shadow:   0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      background: var(--bg);
+      color: var(--ink);
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ---------- App shell ---------- */
+    .app {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    .brand {
+      font-family: 'Space Mono', ui-monospace, monospace;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+      text-decoration: none;
+      display: inline-block;
+    }
+    .brand .z { color: var(--accent); }
+
+    /* ---------- Form view ---------- */
+    .hero {
+      margin: 28px 0 32px;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 6vw, 48px);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      font-weight: 800;
+      margin: 0 0 12px;
+    }
+    .hero h1 .defunct {
+      text-decoration: line-through;
+      text-decoration-color: var(--accent);
+      text-decoration-thickness: 3px;
+    }
+    .hero p {
+      font-size: 17px;
+      color: var(--muted);
+      margin: 0;
+      max-width: 560px;
+    }
+
+    form.card {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .grid .full { grid-column: 1 / -1; }
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 6px;
+      letter-spacing: 0.01em;
+    }
+    label .opt {
+      font-weight: 400;
+      color: var(--muted);
+      margin-left: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 11px 12px;
+      font: inherit;
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s, background .15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-bg);
+      background: var(--paper);
+    }
+    select {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='none' stroke='%236B7F77' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l5 5 5-5'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 20px;
+      background: var(--ink);
+      color: #F9F9F9;
+      border: 1px solid var(--ink);
+      border-radius: 10px;
+      font: inherit;
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform .05s, background .15s, box-shadow .15s;
+    }
+    .btn:hover { background: var(--accent); border-color: var(--accent); }
+    .btn:active { transform: translateY(1px); }
+    .btn.secondary {
+      background: transparent;
+      color: var(--ink);
+    }
+    .btn.secondary:hover {
+      background: var(--accent-bg);
+      color: var(--ink);
+    }
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      justify-content: stretch;
+      gap: 10px;
+    }
+    .actions .btn { width: 100%; }
+
+    .privacy {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .mobile-only-br { display: none; }
+    @media (max-width: 560px) {
+      .mobile-only-br { display: inline; }
+    }
+
+    /* ---------- Resume view ---------- */
+    .resume-view { display: none; }
+    .resume-view.active { display: block; }
+    .form-view.hidden { display: none; }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 24px 0 20px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .toolbar-right { display: flex; gap: 10px; }
+
+    @media (max-width: 560px) {
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .toolbar-right {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+    }
+
+    .resume {
+      background: var(--paper);
+      color: var(--ink);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 56px 56px 40px;
+      box-shadow: var(--shadow);
+      font-family: 'Inter', sans-serif;
+    }
+    @media (max-width: 560px) {
+      .resume { padding: 32px 24px 28px; }
+    }
+
+    .r-name {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin: 0 0 6px;
+    }
+    .r-contact {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0 0 24px;
+      line-height: 1.6;
+    }
+    .r-contact span + span::before {
+      content: " · ";
+      color: var(--border);
+    }
+
+    .r-section {
+      margin-top: 22px;
+    }
+    .r-section h2 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .r-summary {
+      font-size: 14px;
+      color: var(--ink);
+      margin: 0;
+      line-height: 1.55;
+    }
+
+    .r-role {
+      margin-bottom: 18px;
+    }
+    .r-role:last-child { margin-bottom: 0; }
+
+    .r-role-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .r-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0;
+    }
+    .r-dates {
+      font-size: 13px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .r-company {
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 500;
+      margin: 1px 0 6px;
+    }
+    .r-bullets {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+    .r-bullets li {
+      margin-bottom: 3px;
+    }
+
+    .r-skills {
+      font-size: 13.5px;
+      line-height: 1.7;
+      margin: 0;
+    }
+    .r-refs {
+      font-size: 13px;
+      font-style: italic;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .r-satire {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: #9A9A9A;
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+
+    .footer-meta {
+      margin-top: 40px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+    .footer-meta a {
+      color: var(--muted);
+      text-decoration: underline;
+      text-decoration-color: var(--border);
+    }
+    .footer-meta .version {
+      display: block;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+      opacity: 0.7;
+      user-select: all;
+    }
+
+    /* ---------- Print ---------- */
+    @media print {
+      @page { margin: 0.5in; }
+      html, body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .app { max-width: none; padding: 0; margin: 0; }
+      .form-view, .toolbar, .footer-meta, .brand { display: none !important; }
+      .resume-view.active { display: block !important; }
+      .resume {
+        background: #fff !important;
+        color: #000 !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+      }
+      .r-company, .r-section h2 { color: #034D32 !important; }
+      .r-section h2 { border-bottom-color: #C0DDD4 !important; }
+      .r-contact, .r-dates, .r-refs { color: #444 !important; }
+      .r-satire { color: #999 !important; border-top-color: #ccc !important; }
+      .r-role { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body style="background:#F9F9F9;color:#034D32;margin:0;">
+  <div class="app">
+    <a class="brand" href="./">f<span class="z">0</span>rtune5<span class="z">0</span><span class="z">0</span></a>
+
+    <!-- ============ FORM VIEW ============ -->
+    <section class="form-view" id="formView">
+      <div class="hero">
+        <h1>Your resume, but at <span class="defunct">iconic</span> defunct American companies.</h1>
+        <p>Fill out the form. Get a beautifully formatted CV full of bankrupt Fortune 500 names. Print it, share it, frame it.</p>
+      </div>
+
+      <form class="card" id="resumeForm" novalidate>
+        <div class="grid">
+          <div class="full">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required placeholder="Jane Q. Executive" />
+          </div>
+
+          <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required placeholder="jane@example.com" />
+          </div>
+
+          <div>
+            <label for="location">Location</label>
+            <input id="location" name="location" type="text" autocomplete="address-level2" required placeholder="Brooklyn, NY" />
+          </div>
+
+          <div>
+            <label for="linkedin">LinkedIn <span class="opt">optional</span></label>
+            <input id="linkedin" name="linkedin" type="text" placeholder="linkedin.com/in/janeq" />
+          </div>
+
+          <div>
+            <label for="phone">Phone <span class="opt">optional</span></label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="(555) 012-3456" />
+          </div>
+
+          <div>
+            <label for="industry">Industry</label>
+            <select id="industry" name="industry" required>
+              <option value="" disabled selected>Choose an industry…</option>
+              <option value="retail">Retail</option>
+              <option value="tech">Tech &amp; Internet</option>
+              <option value="finance">Finance &amp; Banking</option>
+              <option value="media">Media &amp; Entertainment</option>
+              <option value="airlines">Airlines &amp; Travel</option>
+              <option value="auto">Automotive</option>
+              <option value="food">Food &amp; Restaurants</option>
+              <option value="energy">Energy &amp; Utilities</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="career">Career level</label>
+            <select id="career" name="career" required>
+              <option value="" disabled selected>Choose a level…</option>
+              <option value="entry">Entry Level</option>
+              <option value="mid">Mid-Level</option>
+              <option value="senior">Senior</option>
+              <option value="exec">Executive</option>
+              <option value="csuite">C-Suite</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn">Generate resume →</button>
+        </div>
+
+        <p class="privacy">Everything runs in your browser.<br class="mobile-only-br"> Nothing is sent anywhere.</p>
+      </form>
+    </section>
+
+    <!-- ============ RESUME VIEW ============ -->
+    <section class="resume-view" id="resumeView" aria-live="polite">
+      <div class="toolbar">
+        <button type="button" class="btn secondary" id="backBtn">← Start over</button>
+        <div class="toolbar-right">
+          <button type="button" class="btn secondary" id="regenBtn">↻ Regenerate</button>
+          <button type="button" class="btn" id="printBtn">Save as PDF</button>
+        </div>
+      </div>
+
+      <article class="resume" id="resume"></article>
+    </section>
+
+    <div class="footer-meta">
+      an <a href="https://r0n.info" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260418-07</span>
+    </div>
+  </div>
+
+  <script>
+  /* =============================================================
+     f0rtune500 — generator logic
+     Changelog:
+     v02 (2026-04-18) — No generator changes.
+     v01 (2026-04-18) — Initial. 8 industries × 6-8 companies each.
+                        5 career ladders. Reverse-chron date
+                        calculation, capped at bankruptcy year,
+                        gaps closed for continuous employment.
+     ============================================================= */
+
+  // --- Dark mode runtime enforcement (per 0fam HTML rule) ---
+  // Never rely on CSS vars alone: explicit inline styles on html+body.
+  (function () {
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    function apply(dark) {
+      const bg = dark ? '#0E1613' : '#F9F9F9';
+      const fg = dark ? '#E4F3EE' : '#034D32';
+      document.documentElement.style.background = bg;
+      document.documentElement.style.color = fg;
+      document.body.style.background = bg;
+      document.body.style.color = fg;
+      document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+    }
+    apply(mql.matches);
+    mql.addEventListener('change', e => apply(e.matches));
+  })();
+
+  // ============ COMPANY DATA ============
+  // Each company: { name, bankruptcy, bullets[] }
+  // Bankruptcy = year the company went Ch. 11, was liquidated,
+  // or was discontinued as a brand.
+  const COMPANIES = {
+    retail: [
+      { name: "Sears, Roebuck & Co.", bankruptcy: 2018, bullets: [
+        "Spearheaded catalog-to-digital transformation roadmap across 700+ locations",
+        "Championed appliance-first merchandising strategy in pre-Amazon era",
+        "Led Craftsman brand repositioning initiative during Lowe's incursion",
+        "Negotiated Kenmore manufacturing partnership extensions"
+      ]},
+      { name: "Toys \"R\" Us", bankruptcy: 2018, bullets: [
+        "Drove Geoffrey Giraffe brand refresh across 800+ global locations",
+        "Led loyalty program expansion pre-Amazon Prime",
+        "Championed big-box toy category dominance strategy",
+        "Spearheaded Babies\"R\"Us cross-merchandising initiative"
+      ]},
+      { name: "Bed Bath & Beyond", bankruptcy: 2023, bullets: [
+        "Led 20% coupon direct-mail optimization strategy",
+        "Championed wedding registry platform during Amazon Wedding emergence",
+        "Spearheaded category-killer home-goods positioning"
+      ]},
+      { name: "Circuit City", bankruptcy: 2009, bullets: [
+        "Championed DIVX pay-per-view disc format integration strategy",
+        "Led big-box electronics dominance positioning vs. Best Buy",
+        "Spearheaded extended-warranty attach-rate optimization"
+      ]},
+      { name: "RadioShack", bankruptcy: 2015, bullets: [
+        "Led DIY maker community strategy pre-Adafruit",
+        "Championed catalog-to-digital transition during smartphone emergence",
+        "Spearheaded battery-of-the-month loyalty program"
+      ]},
+      { name: "Borders Group", bankruptcy: 2011, bullets: [
+        "Drove in-store café experience as e-reader adoption accelerated",
+        "Led Amazon-fulfillment partnership extension negotiations",
+        "Championed physical bookstore footprint expansion in digital transition era"
+      ]},
+      { name: "Kmart Corporation", bankruptcy: 2002, bullets: [
+        "Led Blue Light Special optimization across 2,300+ locations",
+        "Spearheaded Martha Stewart Everyday brand extension",
+        "Championed layaway program modernization"
+      ]},
+      { name: "Payless ShoeSource", bankruptcy: 2019, bullets: [
+        "Led 'Palessi' experiential luxury pivot campaign",
+        "Spearheaded BOGO attach-rate optimization across 3,500 locations"
+      ]},
+      { name: "Sports Authority", bankruptcy: 2016, bullets: [
+        "Championed specialty retail positioning vs. Dick's Sporting Goods incursion",
+        "Led Gart Sports merger integration across 400+ locations"
+      ]},
+      { name: "Linens 'n Things", bankruptcy: 2008, bullets: [
+        "Led category-killer home-goods dominance strategy",
+        "Championed Apollo Management acquisition integration"
+      ]}
+    ],
+
+    tech: [
+      { name: "Pets.com", bankruptcy: 2000, bullets: [
+        "Scaled sock-puppet brand ambassador strategy to Super Bowl prominence",
+        "Led 50-pound-dog-food direct-shipping economics optimization",
+        "Championed below-cost pricing acquisition funnel"
+      ]},
+      { name: "Compaq Computer Corporation", bankruptcy: 2002, bullets: [
+        "Led Presario-to-iPAQ product roadmap transition",
+        "Championed Pentium-class beige-box positioning",
+        "Spearheaded DEC integration post-acquisition"
+      ]},
+      { name: "Palm, Inc.", bankruptcy: 2010, bullets: [
+        "Led Graffiti-to-QWERTY input-method transition",
+        "Championed webOS platform against iPhone headwinds",
+        "Spearheaded Treo enterprise email strategy"
+      ]},
+      { name: "Sun Microsystems", bankruptcy: 2010, bullets: [
+        "Led Java platform enterprise adoption during cloud emergence",
+        "Championed SPARC workstation positioning against commodity x86",
+        "Spearheaded Solaris–Linux compatibility initiative"
+      ]},
+      { name: "Polaroid Corporation", bankruptcy: 2001, bullets: [
+        "Led i-Zone instant camera Gen-Y positioning strategy",
+        "Championed SX-70 legacy format against digital photography emergence"
+      ]},
+      { name: "Eastman Kodak", bankruptcy: 2012, bullets: [
+        "Led film-to-digital transformation roadmap (delayed)",
+        "Championed disposable camera strategy during smartphone emergence",
+        "Spearheaded photo-printing kiosk expansion"
+      ]},
+      { name: "Gateway Computers", bankruptcy: 2007, bullets: [
+        "Led cow-print packaging brand strategy",
+        "Championed Country Store retail format expansion"
+      ]},
+      { name: "Nortel Networks", bankruptcy: 2009, bullets: [
+        "Led optical networking category leadership through the dot-com cycle",
+        "Championed carrier-grade VoIP platform development"
+      ]},
+      { name: "Atari, Inc.", bankruptcy: 2013, bullets: [
+        "Led E.T. cartridge disposal logistics optimization",
+        "Championed Jaguar platform positioning against Sega Saturn"
+      ]},
+      { name: "MySpace", bankruptcy: 2011, bullets: [
+        "Led Tom-as-default-friend social graph strategy",
+        "Championed custom-HTML profile platform during Facebook emergence",
+        "Spearheaded News Corp integration post-acquisition"
+      ]},
+      { name: "Theranos", bankruptcy: 2018, bullets: [
+        "Led single-drop blood-diagnostic platform positioning",
+        "Championed investor communication strategy through technical development phase"
+      ]}
+    ],
+
+    finance: [
+      { name: "Lehman Brothers", bankruptcy: 2008, bullets: [
+        "Structured mortgage-backed derivative portfolio (2005–2007)",
+        "Championed real estate CDO underwriting expansion",
+        "Led prime brokerage client relations during liquidity event"
+      ]},
+      { name: "Bear Stearns", bankruptcy: 2008, bullets: [
+        "Led High-Grade Structured Credit fund risk modeling",
+        "Championed subprime mortgage securitization pipeline",
+        "Spearheaded JPMorgan acquisition integration workstream"
+      ]},
+      { name: "Washington Mutual", bankruptcy: 2008, bullets: [
+        "Led Option ARM product line expansion",
+        "Championed 'Whoo Hoo!' brand campaign during market inflection",
+        "Spearheaded Long Beach Mortgage origination channel"
+      ]},
+      { name: "Wachovia", bankruptcy: 2008, bullets: [
+        "Led Golden West Financial acquisition integration",
+        "Championed Pick-a-Pay mortgage product expansion"
+      ]},
+      { name: "Countrywide Financial", bankruptcy: 2008, bullets: [
+        "Led subprime origination volume scaling strategy",
+        "Championed Fast and Easy loan product positioning"
+      ]},
+      { name: "Arthur Andersen LLP", bankruptcy: 2002, bullets: [
+        "Led Enron account team engagement strategy",
+        "Championed document retention policy compliance initiative"
+      ]},
+      { name: "MF Global", bankruptcy: 2011, bullets: [
+        "Led European sovereign debt repo positioning strategy",
+        "Championed proprietary trading platform expansion"
+      ]},
+      { name: "Drexel Burnham Lambert", bankruptcy: 1990, bullets: [
+        "Led high-yield bond market-making operations",
+        "Championed leveraged buyout financing structure innovation"
+      ]},
+      { name: "E.F. Hutton", bankruptcy: 1988, bullets: [
+        "Led overdraft float optimization across branch network",
+        "Championed 'When E.F. Hutton talks' brand positioning"
+      ]}
+    ],
+
+    media: [
+      { name: "Blockbuster Video", bankruptcy: 2010, bullets: [
+        "Championed late-fee optimization strategy against emerging streaming headwinds",
+        "Led Total Access DVD-by-mail counter-offensive",
+        "Spearheaded in-store popcorn and candy attach-rate initiative",
+        "Declined Netflix partnership proposal (2000)"
+      ]},
+      { name: "Tower Records", bankruptcy: 2006, bullets: [
+        "Led Pulse! magazine editorial and circulation strategy",
+        "Championed Sunset Strip flagship store experience",
+        "Spearheaded listening-station merchandising innovation"
+      ]},
+      { name: "Napster (original)", bankruptcy: 2002, bullets: [
+        "Led peer-to-peer user acquisition to 80M+ accounts",
+        "Championed college campus network-effect strategy",
+        "Spearheaded stakeholder relations during Metallica litigation"
+      ]},
+      { name: "Hollywood Video", bankruptcy: 2010, bullets: [
+        "Led Movie Gallery integration across 2,400+ locations",
+        "Championed Game Crazy cross-concept retail strategy"
+      ]},
+      { name: "MoviePass", bankruptcy: 2019, bullets: [
+        "Led unlimited-ticket subscription unit economics framework",
+        "Championed 'one movie per day' value proposition positioning"
+      ]},
+      { name: "Newsweek (print)", bankruptcy: 2012, bullets: [
+        "Led print-to-digital transformation initiative (delayed)",
+        "Championed weekly newsstand category positioning"
+      ]},
+      { name: "Myspace Music", bankruptcy: 2011, bullets: [
+        "Led indie-artist platform positioning pre-Spotify",
+        "Championed custom-layout artist profile strategy"
+      ]},
+      { name: "The Weinstein Company", bankruptcy: 2018, bullets: [
+        "Led awards-season campaign strategy and academy relations",
+        "Championed independent film distribution platform expansion"
+      ]}
+    ],
+
+    airlines: [
+      { name: "Pan American World Airways", bankruptcy: 1991, bullets: [
+        "Led 747 wide-body fleet positioning as global jet-age pioneer",
+        "Championed Clipper Class service standards development",
+        "Spearheaded round-the-world route network optimization"
+      ]},
+      { name: "Trans World Airlines (TWA)", bankruptcy: 2001, bullets: [
+        "Led Howard Hughes legacy-to-Icahn era brand transition",
+        "Championed Ambassador Class cabin experience modernization",
+        "Spearheaded St. Louis hub network strategy"
+      ]},
+      { name: "Eastern Air Lines", bankruptcy: 1991, bullets: [
+        "Led Air Shuttle punctuality optimization on NY–Boston route",
+        "Championed Frank Borman operational transformation initiative"
+      ]},
+      { name: "Braniff International", bankruptcy: 1982, bullets: [
+        "Led Alexander Calder livery design coordination",
+        "Championed 'End of the Plain Plane' positioning campaign",
+        "Spearheaded South American route network expansion"
+      ]},
+      { name: "Continental Airlines", bankruptcy: 2010, bullets: [
+        "Led Proud-to-be-Continental brand-unity initiative",
+        "Championed OnePass loyalty program expansion",
+        "Spearheaded United merger integration workstream"
+      ]},
+      { name: "Northwest Airlines", bankruptcy: 2008, bullets: [
+        "Led WorldPerks program positioning in post-deregulation era",
+        "Championed Pacific route network dominance strategy",
+        "Spearheaded Delta merger integration workstream"
+      ]},
+      { name: "US Airways", bankruptcy: 2013, bullets: [
+        "Led Dividend Miles loyalty program positioning",
+        "Championed America West reverse-merger integration"
+      ]},
+      { name: "ATA Airlines", bankruptcy: 2008, bullets: [
+        "Led military charter contract portfolio expansion",
+        "Championed leisure-carrier positioning in Midwest markets"
+      ]}
+    ],
+
+    auto: [
+      { name: "Pontiac (GM)", bankruptcy: 2010, bullets: [
+        "Led Aztek design coordination and market positioning",
+        "Championed GTO heritage line revival strategy",
+        "Spearheaded Solstice convertible platform development"
+      ]},
+      { name: "Oldsmobile", bankruptcy: 2004, bullets: [
+        "Led 'Not Your Father's Oldsmobile' rebrand campaign",
+        "Championed Alero entry-level positioning vs. import competition",
+        "Spearheaded Intrigue sedan platform strategy"
+      ]},
+      { name: "Saturn Corporation", bankruptcy: 2010, bullets: [
+        "Led no-haggle dealer experience pilot program",
+        "Championed 'A Different Kind of Car Company' positioning",
+        "Spearheaded Ion platform development"
+      ]},
+      { name: "Hummer", bankruptcy: 2010, bullets: [
+        "Led H2-to-H3 platform rightsizing initiative",
+        "Championed civilian military-vehicle positioning strategy"
+      ]},
+      { name: "Mercury (Ford)", bankruptcy: 2011, bullets: [
+        "Led Grand Marquis fleet channel optimization",
+        "Championed Jill Wagner brand ambassador strategy",
+        "Spearheaded Milan mid-size sedan positioning"
+      ]},
+      { name: "Plymouth", bankruptcy: 2001, bullets: [
+        "Led Prowler retro-hot-rod platform positioning",
+        "Championed Breeze entry-sedan value strategy"
+      ]},
+      { name: "DeLorean Motor Company", bankruptcy: 1982, bullets: [
+        "Led gull-wing door manufacturing partnership in Belfast",
+        "Championed stainless-steel unpainted body positioning"
+      ]},
+      { name: "American Motors Corp.", bankruptcy: 1988, bullets: [
+        "Led Pacer platform 'wide small car' positioning strategy",
+        "Championed Gremlin subcompact value-segment innovation",
+        "Spearheaded Jeep product-line acquisition from Kaiser"
+      ]},
+      { name: "Saab Automobile", bankruptcy: 2011, bullets: [
+        "Led 'Born from Jets' brand positioning campaign",
+        "Championed GM-era platform-sharing strategy"
+      ]}
+    ],
+
+    food: [
+      { name: "Howard Johnson's", bankruptcy: 2005, bullets: [
+        "Led 28 Flavors ice cream innovation pipeline",
+        "Championed orange-roof brand architecture across highway system",
+        "Spearheaded motor-lodge cross-concept expansion"
+      ]},
+      { name: "Chi-Chi's", bankruptcy: 2004, bullets: [
+        "Led fajita category pioneering strategy",
+        "Championed fried ice cream menu innovation",
+        "Spearheaded margarita-pitcher service-model scaling"
+      ]},
+      { name: "Bennigan's", bankruptcy: 2008, bullets: [
+        "Led Irish-American casual dining positioning vs. TGI Friday's",
+        "Championed Monte Cristo sandwich menu strategy"
+      ]},
+      { name: "Steak and Ale", bankruptcy: 2008, bullets: [
+        "Led Tudor-era dining-room experiential strategy",
+        "Championed all-you-can-eat salad bar innovation"
+      ]},
+      { name: "Friendly's", bankruptcy: 2020, bullets: [
+        "Led Fribble milkshake franchise expansion in Northeast corridor",
+        "Championed Jim Dandy sundae category positioning",
+        "Spearheaded breakfast daypart optimization"
+      ]},
+      { name: "Quiznos", bankruptcy: 2014, bullets: [
+        "Led toasted-sub differentiation vs. Subway positioning",
+        "Championed 'Spongmonkeys' brand campaign coordination"
+      ]},
+      { name: "Sbarro", bankruptcy: 2014, bullets: [
+        "Led mall-food-court pizza category dominance strategy",
+        "Championed New York Style positioning in shopping centers"
+      ]},
+      { name: "Hostess Brands (original)", bankruptcy: 2012, bullets: [
+        "Led Twinkie shelf-life optimization research initiative",
+        "Championed Wonder Bread 'Builds Strong Bodies' positioning",
+        "Spearheaded Ho Hos / Ding Dongs / Zingers product-line management"
+      ]}
+    ],
+
+    energy: [
+      { name: "Enron Corporation", bankruptcy: 2001, bullets: [
+        "Architected off-balance-sheet special purpose vehicle framework",
+        "Led mark-to-market accounting methodology implementation",
+        "Championed California energy market optimization strategy",
+        "Spearheaded broadband trading market creation"
+      ]},
+      { name: "WorldCom", bankruptcy: 2002, bullets: [
+        "Led post-MCI acquisition integration synergy capture",
+        "Championed long-distance-calling price leadership strategy",
+        "Spearheaded capitalization methodology modernization"
+      ]},
+      { name: "Pacific Gas & Electric", bankruptcy: 2019, bullets: [
+        "Led wildfire risk mitigation capital allocation strategy",
+        "Championed electric grid infrastructure investment planning"
+      ]},
+      { name: "Solyndra", bankruptcy: 2011, bullets: [
+        "Led cylindrical thin-film solar panel positioning",
+        "Championed Department of Energy loan guarantee execution"
+      ]},
+      { name: "Peabody Energy", bankruptcy: 2016, bullets: [
+        "Led metallurgical coal export strategy during commodity cycle",
+        "Championed Powder River Basin production scaling"
+      ]},
+      { name: "Westinghouse Electric", bankruptcy: 2017, bullets: [
+        "Led AP1000 nuclear reactor platform commercialization",
+        "Championed Vogtle and Summer project management workstreams"
+      ]},
+      { name: "Arch Coal", bankruptcy: 2016, bullets: [
+        "Led thermal coal portfolio optimization during utility fuel switching",
+        "Championed Appalachian operations consolidation"
+      ]}
+    ]
+  };
+
+  // ============ CAREER LADDERS ============
+  // Most senior (current) title first, cascading junior.
+  // Number of entries = max roles for that level.
+  const TITLE_LADDERS = {
+    entry:  ["Analyst", "Junior Analyst", "Associate"],
+    mid:    ["Senior Manager", "Manager", "Senior Analyst", "Analyst"],
+    senior: ["Director", "Senior Manager", "Manager", "Senior Analyst"],
+    exec:   ["Vice President", "Senior Director", "Director", "Senior Manager"],
+    csuite: ["Chief {FUNCTION} Officer", "Senior Vice President", "Vice President", "Director", "Senior Manager"]
+  };
+
+  const ROLE_COUNTS = {
+    entry: 2, mid: 3, senior: 3, exec: 4, csuite: 4
+  };
+
+  // Functional departments — used as "Title of Department"
+  // and to fill {FUNCTION} in C-Suite titles.
+  const DEPARTMENTS = {
+    retail:   ["Merchandising", "Store Operations", "Category Management", "Supply Chain"],
+    tech:     ["Product", "Engineering", "Platform Strategy", "Business Development"],
+    finance:  ["Structured Products", "Investment Banking", "Capital Markets", "Risk"],
+    media:    ["Content Strategy", "Distribution", "Brand Partnerships", "Editorial"],
+    airlines: ["Network Planning", "Customer Experience", "Operations", "Loyalty"],
+    auto:     ["Product Development", "Brand Strategy", "Dealer Relations", "Manufacturing"],
+    food:     ["Franchise Development", "Menu Innovation", "Brand Marketing", "Operations"],
+    energy:   ["Trading", "Structured Finance", "Regulatory Affairs", "Commercial Operations"]
+  };
+
+  const CSUITE_FUNCTIONS = {
+    retail:   ["Merchandising", "Revenue", "Operating", "Strategy"],
+    tech:     ["Product", "Technology", "Revenue", "Strategy"],
+    finance:  ["Investment", "Risk", "Financial", "Operating"],
+    media:    ["Content", "Revenue", "Brand", "Digital"],
+    airlines: ["Commercial", "Operating", "Customer", "Strategy"],
+    auto:     ["Marketing", "Operating", "Strategy", "Product"],
+    food:     ["Brand", "Operating", "Development", "Marketing"],
+    energy:   ["Risk", "Operating", "Financial", "Commercial"]
+  };
+
+  const SUMMARIES = {
+    entry: [
+      "Emerging professional with demonstrated interest in joining organizations at critical inflection points. Results-driven early-career leader seeking opportunities at iconic industry institutions.",
+      "Ambitious self-starter with proven track record of selecting employers at pivotal moments in their corporate journey. Specialist in stable, legacy-brand environments."
+    ],
+    mid: [
+      "Strategic contributor with proven track record at industry-defining organizations. Cross-functional operator specializing in pre-disruption category management and legacy-brand stewardship.",
+      "Results-oriented professional with hands-on experience across market-consolidation environments. Track record of driving execution at organizations of generational significance."
+    ],
+    senior: [
+      "Strategic executive with 15+ years leading legacy-brand transformation initiatives at iconic American organizations. Specialist in pre-disruption category positioning and operational scaling.",
+      "Seasoned cross-functional leader with demonstrated impact across industry-defining institutions. Track record of shepherding organizations through critical inflection points."
+    ],
+    exec: [
+      "Transformational executive with 20+ years guiding organizations of generational significance through market-defining transitions. Visionary leader specializing in category-defining brand stewardship during periods of structural evolution.",
+      "Strategic operator with proven track record across America's most iconic organizations. Deep expertise in pre-disruption category leadership and complex organizational realignment."
+    ],
+    csuite: [
+      "Transformational C-suite executive with 25+ years stewarding iconic American brands through their most defining chapters. Visionary leader with expertise in legacy-brand valuation optimization.",
+      "Seasoned chief executive with proven track record guiding organizations through once-in-a-generation market transitions. Expertise in strategic repositioning and historic-moment leadership."
+    ]
+  };
+
+  const UNIVERSAL_SKILLS = [
+    "Strategic Planning", "Cross-Functional Leadership", "Stakeholder Management",
+    "P&L Oversight", "Change Management", "Budget Forecasting",
+    "Executive Communication", "Team Building", "M&A Integration"
+  ];
+
+  const RETRO_SKILLS = [
+    "Adobe Flash", "BlackBerry Messenger", "Fax-Based Outreach",
+    "Yellow Pages Media Planning", "Lotus 1-2-3", "Microsoft Silverlight",
+    "Palm OS Development", "CRT Display Calibration", "Zip Disk Archiving",
+    "Netscape Navigator", "WordPerfect", "Usenet Community Management"
+  ];
+
+  const INDUSTRY_SKILLS = {
+    retail:   ["Layaway Program Management", "Blue Light Special Optimization", "Price Gun Operation", "Endcap Merchandising"],
+    tech:     ["CRT Display Calibration", "Usenet Community Management", "MySpace Premier Partnership", "ISDN Configuration"],
+    finance:  ["Mark-to-Market Accounting", "Subprime Mortgage Packaging", "CDO-Squared Structuring", "Paper Trading Floor Operations"],
+    media:    ["VHS Inventory Categorization", "Laserdisc Distribution", "Newspaper Classified Strategy", "Late-Fee Optimization"],
+    airlines: ["Smoking-Section Management", "Paper Ticket Issuance", "Travel Agent Relations", "Meal Service Standards"],
+    auto:     ["Chrome Trim Coordination", "Station Wagon Positioning", "Tape Deck Integration", "CD Changer Specification"],
+    food:     ["All-You-Can-Eat Menu Engineering", "Cigar Lounge Management", "Salad Bar Rotation", "Buffet Compliance"],
+    energy:   ["Special Purpose Vehicle Structuring", "California Power Market Operations", "Mark-to-Market Accounting", "Off-Balance-Sheet Modeling"]
+  };
+
+  const REFERENCES_LINES = [
+    "Furnished upon request (please allow 4–6 weeks for probate).",
+    "Contact information preserved at Iron Mountain.",
+    "Deferred pending estate settlements.",
+    "Next of kin not reachable.",
+    "Pending notarized séances.",
+    "Obituaries on request.",
+    "Available pending release from various state and federal prisons.",
+    "Available upon request. Objective feedback pending active litigation.",
+    "Available to speak freely when cleared by their defense attorneys.",
+    "Currently cooperating with federal prosecutors.",
+    "Available following completion of deferred prosecution agreements.",
+    "Willing to speak pending advisement of counsel.",
+    "References restricted by ongoing SEC inquiries.",
+    "Available during federal visitation hours.",
+    "Contact details sealed by protective orders.",
+    "Reachable through court-appointed representatives."
+  ];
+
+  // ============ UTILITIES ============
+  const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+  const shuffle = (arr) => {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+  const pickOne = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const pickN = (arr, n) => shuffle(arr).slice(0, n);
+  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+
+  // ============ GENERATOR ============
+  function generate(form) {
+    const industry = form.industry;
+    const level    = form.career;
+    const pool     = COMPANIES[industry];
+    const numRoles = Math.min(ROLE_COUNTS[level], pool.length);
+
+    // Pick companies and sort by bankruptcy year DESC (most recent first).
+    const picked = pickN(pool, numRoles)
+      .sort((a, b) => b.bankruptcy - a.bankruptcy);
+
+    // Department for title suffix (C-Suite uses function instead).
+    const dept = pickOne(DEPARTMENTS[industry]);
+    const fn   = pickOne(CSUITE_FUNCTIONS[industry]);
+
+    // Build roles reverse-chron, walking dates backward.
+    const ladder = TITLE_LADDERS[level];
+    const roles = [];
+    let ceiling = null; // the earliest year the next (older) role can end
+
+    picked.forEach((company, i) => {
+      const endYear = ceiling === null
+        ? company.bankruptcy
+        : Math.min(company.bankruptcy, ceiling);
+      const duration = rand(3, 6);
+      const startYear = endYear - duration;
+
+      // Title: ladder[i] with department/function applied.
+      let title = ladder[i] || ladder[ladder.length - 1];
+      if (title.includes("{FUNCTION}")) {
+        title = title.replace("{FUNCTION}", fn);
+      } else if (level === "exec" || level === "senior") {
+        // Senior/exec roles sound better with "of Department"
+        if (/^(Vice President|Senior Director|Director|Senior Manager)$/.test(title)) {
+          title = `${title} of ${dept}`;
+        }
+      } else if (level === "mid") {
+        if (/^(Senior Manager|Manager)$/.test(title)) {
+          title = `${title}, ${dept}`;
+        }
+      }
+
+      roles.push({
+        title,
+        company: company.name,
+        startYear,
+        endYear,
+        bullets: pickN(company.bullets, Math.min(3, company.bullets.length === 2 ? 2 : rand(2, 3)))
+      });
+
+      ceiling = startYear;
+    });
+
+    // Close any date gaps. If an earlier role ended before a later role began,
+    // extend the later role backward so the resume has continuous dates.
+    for (let i = 0; i < roles.length - 1; i++) {
+      if (roles[i].startYear > roles[i + 1].endYear) {
+        roles[i].startYear = roles[i + 1].endYear;
+      }
+    }
+
+    // Skills: 3 universal + 2 industry + 2 retro = 7 total, shuffled.
+    const skills = shuffle([
+      ...pickN(UNIVERSAL_SKILLS, 3),
+      ...pickN(INDUSTRY_SKILLS[industry], 2),
+      ...pickN(RETRO_SKILLS, 2)
+    ]);
+
+    return {
+      summary: pickOne(SUMMARIES[level]),
+      roles,
+      skills,
+      references: pickOne(REFERENCES_LINES)
+    };
+  }
+
+  // ============ RENDER ============
+  function render(form, data) {
+    const contactBits = [];
+    if (form.location) contactBits.push(esc(form.location));
+    if (form.email)    contactBits.push(esc(form.email));
+    if (form.phone)    contactBits.push(esc(form.phone));
+    if (form.linkedin) contactBits.push(esc(form.linkedin));
+
+    const contactHTML = contactBits.map(b => `<span>${b}</span>`).join('');
+
+    const rolesHTML = data.roles.map(r => `
+      <div class="r-role">
+        <div class="r-role-header">
+          <h3 class="r-title">${esc(r.title)}</h3>
+          <span class="r-dates">${r.startYear} – ${r.endYear}</span>
+        </div>
+        <p class="r-company">${esc(r.company)}</p>
+        <ul class="r-bullets">
+          ${r.bullets.map(b => `<li>${esc(b)}</li>`).join('')}
+        </ul>
+      </div>
+    `).join('');
+
+    return `
+      <h1 class="r-name">${esc(form.name)}</h1>
+      <p class="r-contact">${contactHTML}</p>
+
+      <div class="r-section">
+        <h2>Professional Summary</h2>
+        <p class="r-summary">${esc(data.summary)}</p>
+      </div>
+
+      <div class="r-section">
+        <h2>Experience</h2>
+        ${rolesHTML}
+      </div>
+
+      <div class="r-section">
+        <h2>Skills</h2>
+        <p class="r-skills">${data.skills.map(esc).join(' · ')}</p>
+      </div>
+
+      <div class="r-section">
+        <h2>References</h2>
+        <p class="r-refs">${esc(data.references)}</p>
+      </div>
+
+      <div class="r-satire">satire · built with f0rtune500</div>
+    `;
+  }
+
+  // ============ UI WIRING ============
+  const formView  = document.getElementById('formView');
+  const resView   = document.getElementById('resumeView');
+  const form      = document.getElementById('resumeForm');
+  const resumeEl  = document.getElementById('resume');
+  const backBtn   = document.getElementById('backBtn');
+  const regenBtn  = document.getElementById('regenBtn');
+  const printBtn  = document.getElementById('printBtn');
+
+  // Capture the page's original title so we can restore it later.
+  // The title drives the default PDF filename when the user prints, so on
+  // submit we prepend the user's name — making the saved PDF come out
+  // "Jane Q. Executive — f0rtune500 — satirical resume generator.pdf".
+  const originalTitle = document.title;
+
+  let lastForm = null;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    const data = Object.fromEntries(new FormData(form).entries());
+    lastForm = data;
+    const generated = generate(data);
+    resumeEl.innerHTML = render(data, generated);
+    document.title = `${data.name.trim()} — ${originalTitle}`;
+    formView.classList.add('hidden');
+    resView.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  regenBtn.addEventListener('click', () => {
+    if (!lastForm) return;
+    const generated = generate(lastForm);
+    resumeEl.innerHTML = render(lastForm, generated);
+  });
+
+  backBtn.addEventListener('click', () => {
+    resView.classList.remove('active');
+    formView.classList.remove('hidden');
+    document.title = originalTitle;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  printBtn.addEventListener('click', () => window.print());
+  </script>
+</body>
+</html>
