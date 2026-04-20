@@ -36,8 +36,29 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-14.html
+       File: f0rtune500-20260420-15.html
        Changelog:
+       v17 (2026-04-20) — Switched image library from html2canvas
+                          to html-to-image. html2canvas has its
+                          own text layout engine that kept
+                          resolving font sizes inconsistently
+                          across the DOM — .r-summary and
+                          .r-bullets rendering ~50% larger than
+                          .r-skills and .r-refs despite identical
+                          CSS. No amount of explicit font-size +
+                          line-height fixed it.
+                          html-to-image uses the browser's native
+                          SVG foreignObject pipeline. The browser
+                          itself does the text rendering via
+                          foreignObject, so font handling matches
+                          what you see on screen. Also smaller
+                          library (~20KB vs ~50KB).
+                          API is simpler: toBlob(el, {style}) with
+                          a style object applied to the cloned
+                          node. Same isMobile gating on
+                          share-vs-download. FileReader is used
+                          for the modal fallback since the new API
+                          returns Blob not Canvas.
        v16 (2026-04-20) — Full typography reset. Image export
                           still had a jarring size disparity where
                           .r-summary and .r-bullets rendered larger
@@ -928,7 +949,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-14</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-15</span>
     </div>
   </div>
 
@@ -1633,45 +1654,39 @@
   printBtn.addEventListener('click', () => window.print());
 
   /* =============================================================
-     Save as image (v10, 2026-04-20)
-     Renders the resume to PNG and hands it to the user via the
-     best available path for their environment.
-     Two important fixes from v08:
-       1. Clone the resume into an off-screen wrapper at a fixed
-          820px width before rendering. Without this, mobile users
-          get a narrow tall tower because html2canvas captures the
-          DOM at its actual rendered width. The wrapper also forces
-          light-mode CSS variables so dark-mode users get a normal
-          white resume in the PNG.
-       2. Desktop gets anchor download. Only mobile tries
-          navigator.share — Chrome desktop supports Web Share API
-          with files now, which caused the share sheet to open on
-          desktop when users expected a plain download.
-     Paths:
-       1. Render off-screen clone at 820px to canvas -> blob.
-       2. If mobile + share-with-files works: native share sheet.
-       3. Else: anchor download (Downloads folder on desktop).
-       4. Last resort: modal for long-press / right-click save.
+     Save as image (v17, 2026-04-20)
+     Switched from html2canvas to html-to-image. html2canvas has a
+     custom text layout engine that was rendering different DOM
+     positions at inconsistent font sizes, producing the "horsey"
+     look — bullets and summary visibly larger than skills and
+     refs despite identical CSS. html-to-image uses the browser's
+     native SVG foreignObject + canvas pipeline, so the browser
+     itself does the text rendering and fonts come out accurate.
      ============================================================= */
   (function() {
     const imageBtn = document.getElementById('imageBtn');
     if (!imageBtn) return;
 
-    const H2C_URL = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-    let h2cPromise = null;
-    function loadH2C() {
-      if (h2cPromise) return h2cPromise;
-      h2cPromise = new Promise((resolve, reject) => {
-        if (window.html2canvas) return resolve(window.html2canvas);
+    const LIB_URL = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js';
+    let libPromise = null;
+    function loadLib() {
+      if (libPromise) return libPromise;
+      libPromise = new Promise(function(resolve, reject) {
+        if (window.htmlToImage) return resolve(window.htmlToImage);
         const s = document.createElement('script');
-        s.src = H2C_URL;
-        s.onload = () => window.html2canvas
-          ? resolve(window.html2canvas)
-          : reject(new Error('html2canvas did not initialize'));
-        s.onerror = () => { h2cPromise = null; reject(new Error('html2canvas CDN failed to load')); };
+        s.src = LIB_URL;
+        s.onload = function() {
+          window.htmlToImage
+            ? resolve(window.htmlToImage)
+            : reject(new Error('html-to-image did not initialize'));
+        };
+        s.onerror = function() {
+          libPromise = null;
+          reject(new Error('html-to-image CDN failed to load'));
+        };
         document.head.appendChild(s);
       });
-      return h2cPromise;
+      return libPromise;
     }
 
     function showSaveModal(dataUrl) {
@@ -1691,14 +1706,14 @@
       modal.appendChild(scrim);
       modal.appendChild(content);
       document.body.appendChild(modal);
-      const close = () => modal.remove();
+      const close = function() { modal.remove(); };
       scrim.addEventListener('click', close);
       content.querySelector('.save-modal-close').addEventListener('click', close);
     }
 
     const originalLabel = 'Save as image';
 
-    imageBtn.addEventListener('click', async (e) => {
+    imageBtn.addEventListener('click', async function(e) {
       e.preventDefault();
       imageBtn.disabled = true;
       imageBtn.textContent = 'Rendering\u2026';
@@ -1708,56 +1723,36 @@
           await document.fonts.ready;
         }
 
-        const h2c = await loadH2C();
+        const lib = await loadLib();
         const resumeEl = document.getElementById('resume');
         if (!resumeEl) throw new Error('Resume element missing');
 
-        // html2canvas makes its own internal clone of the document
-        // into an iframe before rendering. We use its onclone hook
-        // to override width and colors on THAT clone directly —
-        // simpler and more reliable than maintaining our own
-        // off-screen clone wrapper.
-        const canvas = await h2c(resumeEl, {
+        // html-to-image applies the `style` object to the cloned
+        // element before rendering, which is how we force the
+        // desktop width and light-mode color variables on the
+        // cloned DOM without touching the live resume.
+        const blob = await lib.toBlob(resumeEl, {
           backgroundColor: '#ffffff',
-          scale: 2,
-          logging: false,
-          useCORS: true,
-          windowWidth: 900,  // desktop-mode media queries in the clone
-          onclone: function(doc, el) {
-            // Force desktop render width so mobile doesn't produce
-            // a narrow, tall tower.
-            el.style.width = '820px';
-            el.style.maxWidth = 'none';
-            el.style.margin = '0';
-
-            // Force light-mode CSS variable values so the PNG looks
-            // the same regardless of the user's OS theme.
-            const root = doc.documentElement;
-            root.style.setProperty('--bg',        '#F9F9F9');
-            root.style.setProperty('--ink',       '#034D32');
-            root.style.setProperty('--accent',    '#028454');
-            root.style.setProperty('--accent-bg', '#E4F3EE');
-            root.style.setProperty('--border',    '#C0DDD4');
-
-            // Also set color-scheme to light so any prefers-color-scheme
-            // queries inside the cloned iframe resolve to light.
-            root.style.setProperty('color-scheme', 'light');
+          pixelRatio: 2,
+          width: 820,
+          style: {
+            width:         '820px',
+            maxWidth:      'none',
+            margin:        '0',
+            '--bg':        '#F9F9F9',
+            '--ink':       '#034D32',
+            '--accent':    '#028454',
+            '--accent-bg': '#E4F3EE',
+            '--border':    '#C0DDD4',
+            colorScheme:   'light'
           }
         });
 
-        const blob = await new Promise(function(resolve, reject) {
-          canvas.toBlob(
-            function(b) { b ? resolve(b) : reject(new Error('canvas.toBlob returned null')); },
-            'image/png'
-          );
-        });
+        if (!blob) throw new Error('toBlob returned null');
 
         const filename = 'f0rtune500-resume.png';
         const file = new File([blob], filename, { type: 'image/png' });
 
-        // Only treat as "mobile" if UA looks mobile. Desktop Chrome
-        // supports Web Share API with files now, which we don't want
-        // — desktop users expect a plain download.
         const ua = navigator.userAgent || '';
         const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(ua);
         let handled = false;
@@ -1787,7 +1782,10 @@
         }
 
         if (!handled) {
-          showSaveModal(canvas.toDataURL('image/png'));
+          // Need a data URL for the modal; convert blob.
+          const reader = new FileReader();
+          reader.onload = function() { showSaveModal(reader.result); };
+          reader.readAsDataURL(blob);
         }
 
         imageBtn.textContent = originalLabel;
