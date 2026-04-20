@@ -1,64 +1,41 @@
 # f0rtune500
 
-A satirical resume generator. Fill out a form, get a cleanly formatted CV full of bankrupt Fortune 500 names. Print it, share it, frame it.
+A satirical resume generator. Fill out a form, get a cleanly formatted resume full of bankrupt Fortune 500 companies.
 
-No one can prove you *didn't* work at these companies.
+Live at [f0rtune500.app](https://f0rtune500.app).
 
-**Live:** [f0rtune500.app](https://f0rtune500.app)
+## The joke
 
----
+No one can prove you didn't work at these companies. They don't exist anymore.
 
-## What it does
+Enron collapsed in 2001. Toys "R" Us liquidated in 2018. Sears is mostly a memory. Lehman, Blockbuster, Circuit City, Radio Shack, Compaq, Washington Mutual — all defunct, all once household names. f0rtune500 takes your form input (name, location, industry, career level) and generates a reverse-chronological resume using era-appropriate roles at companies that were real, important, and are now gone.
 
-You give it your name, email, location, industry, and career level. It hands back a formatted resume where every job is at a famously defunct American company — Enron, Lehman, Blockbuster, Pan Am, Borders, Toys "R" Us, Circuit City, and friends.
+## The point
 
-Dates work backward from each company's bankruptcy year. Titles ladder from Entry Level up to C-Suite. Every role comes with absurd, era-appropriate bullet points. References are unavailable for legally or biologically unfortunate reasons.
+The output reads exactly like a real executive resume — same confident bullet points, same industry jargon, same self-important cadence. Which is kind of the joke. LinkedIn theater is interchangeable. When the company is gone and only the resume bullets remain, you start to notice how little the bullets actually said.
 
-Everything runs in your browser. Nothing is sent anywhere.
+## Stack
 
----
+- Single static HTML file
+- Zero backend. Everything runs in your browser.
+- 8 industries × 6–8 companies each, each with researched bankruptcy year and era-appropriate bullet library
+- 5 career ladders (IC, Senior, Manager, Director, Executive) with role-appropriate titles per industry
+- Reverse-chronological date logic, capped at each company's bankruptcy year, gaps closed for continuous employment
+- PDF export via browser print (document.title gets rewritten on submit so the default filename includes your name)
+- Dark mode support
 
-## How to use
+## Privacy
 
-1. Visit [f0rtune500.app](https://f0rtune500.app).
-2. Fill out the form.
-3. Click **Generate resume**.
-4. Click **Save as PDF** (or hit regenerate for a different combination of companies).
-
-The browser's print dialog handles PDF export. The filename is pre-populated with your name.
-
----
-
-## Tech
-
-One HTML file. No build step, no dependencies, no analytics.
-
-- Vanilla HTML / CSS / JS
-- Fonts: Inter (body), Space Mono (brand wordmark and system metadata)
-- Palette: 0fam house colors (ink green `#034D32`, accent green `#028454`)
-- PDF export via native browser print
-- Dark mode handled via `prefers-color-scheme`
-
----
+Nothing is sent anywhere. No analytics, no tracking, no server. Open devtools if you don't believe me.
 
 ## Part of 0fam
 
-f0rtune500 is one of 100 focused micro-apps in the 0fam ecosystem. Shared brand conventions across the family:
+f0rtune500 is part of [0fam](https://0utput.co), a family of small, focused web apps. Every name drops a letter for a zero.
 
-- Zero-substitution naming (0fam, b0p, st0rm, marg0, b0ng0, f0rtune500)
-- Space Mono wordmark with dotted 0s as the brand mark
-- No individual app logos — the typography is the identity
+## License
 
-More at [r0n.info](https://r0n.info).
+MIT.
 
----
+## Contact
 
-## Disclaimer
-
-This is satire. Do not submit a f0rtune500 resume to an actual job application. It will not help you get hired. It may help you entertain a group chat.
-
----
-
-## Credits
-
-Built by [Ron Seidel](https://rontheron.com).
+Built by [Ron Seidel](https://rontheron.com) · [hello@0utput.co](mailto:hello@0utput.co)
