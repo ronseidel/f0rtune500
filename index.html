@@ -36,8 +36,28 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-01.html
+       File: f0rtune500-20260420-03.html
        Changelog:
+       v05 (2026-04-20) — Form field consistency pass.
+                          • Location is now optional (was required).
+                            No reason it should be required when the
+                            rest of contact info isn't — some people
+                            might want to just generate a satirical
+                            resume without a city attached.
+                          • Email, LinkedIn, and Phone optional
+                            labels now all use the same .opt span
+                            pattern. v04 introduced email as
+                            optional but with a one-off inline
+                            style — unified with the rest.
+                          Name remains the only required field.
+       v04 (2026-04-20) — Two changes.
+                          1. Email field made optional, no format
+                             validation. Joke input doesn't need
+                             validating.
+                          2. Webview fix, round two. navigator.share()
+                             replaces the broken window.open approach
+                             so LinkedIn iOS users can actually get
+                             the PDF out.
        v03 (2026-04-20) — In-app webview support.
                           LinkedIn / Instagram / Facebook / Twitter /
                           WeChat / TikTok in-app browsers silently
@@ -602,13 +622,13 @@
           </div>
 
           <div>
-            <label for="email">Email</label>
-            <input id="email" name="email" type="email" autocomplete="email" required placeholder="jane@example.com" />
+            <label for="email">Email <span class="opt">optional</span></label>
+            <input id="email" name="email" type="text" autocomplete="email" placeholder="jane@example.com" />
           </div>
 
           <div>
-            <label for="location">Location</label>
-            <input id="location" name="location" type="text" autocomplete="address-level2" required placeholder="Brooklyn, NY" />
+            <label for="location">Location <span class="opt">optional</span></label>
+            <input id="location" name="location" type="text" autocomplete="address-level2" placeholder="Brooklyn, NY" />
           </div>
 
           <div>
@@ -671,7 +691,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-01</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-03</span>
     </div>
   </div>
 
@@ -1372,8 +1392,8 @@
     banner.className = 'webview-banner';
     banner.setAttribute('role', 'status');
     banner.innerHTML =
-      '<span>Tap <strong>⋯ &rarr; Open in Browser</strong> to save as PDF. ' +
-      'LinkedIn\u2019s in-app browser blocks downloads.</span>' +
+      '<span>LinkedIn\u2019s browser blocks PDF downloads. Tap <strong>Share</strong> below ' +
+      'to open this in Safari or Chrome.</span>' +
       '<button type="button" class="webview-banner-close" aria-label="Dismiss">&times;</button>';
     document.body.insertBefore(banner, document.body.firstChild);
     banner.querySelector('.webview-banner-close').addEventListener('click', () => {
@@ -1382,13 +1402,39 @@
 
     // Swap the "Save as PDF" button. Use capture phase + stopImmediate
     // so the existing bubble-phase window.print() handler never runs.
+    // Strategy: navigator.share() (native share sheet, user picks Safari
+    // or Chrome to open there) -> clipboard copy fallback -> window.open
+    // last-ditch. Window.open alone is unreliable in LinkedIn iOS webview.
     if (printBtn) {
-      printBtn.textContent = 'Open in Browser';
-      printBtn.title = 'LinkedIn blocks downloads. Tap to open in your browser.';
-      printBtn.addEventListener('click', (e) => {
+      printBtn.textContent = 'Share to save PDF';
+      printBtn.title = 'Opens your share sheet so you can open this page in Safari or Chrome and save as PDF.';
+      const originalLabel = printBtn.textContent;
+
+      printBtn.addEventListener('click', async (e) => {
         e.stopImmediatePropagation();
         e.preventDefault();
-        window.open(window.location.href, '_blank');
+
+        const url = window.location.href;
+
+        if (navigator.share) {
+          try {
+            await navigator.share({ title: 'f0rtune500', url: url });
+            return;
+          } catch (err) {
+            if (err && err.name === 'AbortError') return; // user cancelled
+          }
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try {
+            await navigator.clipboard.writeText(url);
+            printBtn.textContent = '\u2713 Link copied — paste in Safari';
+            setTimeout(() => { printBtn.textContent = originalLabel; }, 3500);
+            return;
+          } catch (err) { /* fall through */ }
+        }
+
+        window.open(url, '_blank');
       }, true);
     }
   })();
