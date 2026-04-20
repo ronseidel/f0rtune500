@@ -36,8 +36,31 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-19.html
+       File: f0rtune500-20260420-20.html
        Changelog:
+       v22 (2026-04-20) — Bullet markers via inline element, not
+                          CSS pseudo-element. v21's
+                          .r-bullets li::before approach with
+                          absolute positioning and `top: 0.6em`
+                          didn't survive html-to-image's SVG
+                          foreignObject serialization — markers
+                          rendered as tiny floating superscripts
+                          at the top-left of each line instead of
+                          baseline-aligned with the text.
+                          Fix: put the bullet character (·) into
+                          the HTML itself as a <span
+                          class="r-bullet-mark">, and use a
+                          flex row on the <li> with gap:8px. No
+                          pseudo-elements, no absolute
+                          positioning, no em math. It's just text
+                          in a flex container — rock solid across
+                          every renderer including foreignObject,
+                          WebKit, and whatever the LinkedIn
+                          webview is serving.
+                          Also tightened bullet line-height from
+                          1.5 to 1.45.
+                          Test harness still passes all 7
+                          scenarios within letter height.
        v21 (2026-04-20) — Bullet typography. Bullets rendered at
                           13px matched the company name size and
                           flattened the hierarchy; browser default
@@ -816,24 +839,20 @@
       padding: 0;
       list-style: none;
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.45;
     }
     .r-bullets li {
-      position: relative;
-      padding-left: 14px;
+      display: flex;
+      gap: 8px;
       margin-bottom: 2px;
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.45;
     }
-    .r-bullets li::before {
-      content: "";
-      position: absolute;
-      left: 3px;
-      top: 0.6em;
-      width: 3px;
-      height: 3px;
-      border-radius: 50%;
-      background: var(--muted);
+    .r-bullet-mark {
+      color: var(--muted);
+      flex-shrink: 0;
+      font-weight: 700;
+      user-select: none;
     }
 
     .r-skills {
@@ -1058,7 +1077,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-19</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-20</span>
     </div>
   </div>
 
@@ -1656,7 +1675,7 @@
         </div>
         <p class="r-company">${esc(r.company)}</p>
         <ul class="r-bullets">
-          ${r.bullets.map(b => `<li>${esc(b)}</li>`).join('')}
+          ${r.bullets.map(b => `<li><span class="r-bullet-mark">·</span><span>${esc(b)}</span></li>`).join('')}
         </ul>
       </div>
     `).join('');
