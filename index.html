@@ -36,8 +36,27 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-07.html
+       File: f0rtune500-20260420-08.html
        Changelog:
+       v10 (2026-04-20) — Save as image, two real fixes.
+                          1. Render width. Was capturing the resume
+                             at its actual DOM width, so mobile
+                             users got a narrow, tall tower. Now
+                             clones the resume into an off-screen
+                             wrapper at 820px + 48px padding and
+                             captures that. PNG looks the same
+                             regardless of device.
+                          2. Desktop share sheet. Chrome desktop
+                             now supports Web Share API with files,
+                             so canShare({files}) fired on desktop
+                             and opened a share UI when users
+                             expected a download. Gated share on
+                             isMobile UA check; desktop always
+                             gets anchor download to Downloads
+                             folder.
+                          Also: wrapper forces light-mode CSS
+                          variables, so dark-mode users get a
+                          white, printable-looking resume PNG.
        v09 (2026-04-20) — Bring back detection, smarter this time.
                           Allowlist model: Save as PDF only shows
                           when window.print() is known to work.
@@ -793,7 +812,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-07</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-08</span>
     </div>
   </div>
 
@@ -1519,16 +1538,25 @@
   printBtn.addEventListener('click', () => window.print());
 
   /* =============================================================
-     Save as image (v08, 2026-04-20)
-     Always-on second save path. Works everywhere — desktop, mobile
-     Safari, Android Chrome, and every in-app webview we couldn't
-     reliably detect (LinkedIn, IG, FB, etc.).
-     Flow:
-       1. Render resume to PNG via html2canvas (CDN, loaded on click).
-       2. navigator.share({files}) if supported — native share sheet
-          with the PNG attached. Works in iOS 15+ WKWebView.
-       3. Anchor download otherwise — works on desktop browsers.
-       4. Modal with image + "long-press to save" as last resort.
+     Save as image (v10, 2026-04-20)
+     Renders the resume to PNG and hands it to the user via the
+     best available path for their environment.
+     Two important fixes from v08:
+       1. Clone the resume into an off-screen wrapper at a fixed
+          820px width before rendering. Without this, mobile users
+          get a narrow tall tower because html2canvas captures the
+          DOM at its actual rendered width. The wrapper also forces
+          light-mode CSS variables so dark-mode users get a normal
+          white resume in the PNG.
+       2. Desktop gets anchor download. Only mobile tries
+          navigator.share — Chrome desktop supports Web Share API
+          with files now, which caused the share sheet to open on
+          desktop when users expected a plain download.
+     Paths:
+       1. Render off-screen clone at 820px to canvas -> blob.
+       2. If mobile + share-with-files works: native share sheet.
+       3. Else: anchor download (Downloads folder on desktop).
+       4. Last resort: modal for long-press / right-click save.
      ============================================================= */
   (function() {
     const imageBtn = document.getElementById('imageBtn');
@@ -1573,6 +1601,38 @@
       content.querySelector('.save-modal-close').addEventListener('click', close);
     }
 
+    function makeRenderWrapper(sourceEl) {
+      const wrapper = document.createElement('div');
+      wrapper.setAttribute('aria-hidden', 'true');
+      wrapper.style.cssText = [
+        'position:absolute',
+        'top:0',
+        'left:-10000px',
+        'width:820px',
+        'background:#ffffff',
+        'padding:48px',
+        'box-sizing:border-box',
+        'color-scheme:light'
+      ].join(';');
+      // Force light-mode values for the CSS custom properties so the
+      // PNG looks the same regardless of the user's OS theme.
+      const lightVars = {
+        '--bg':        '#F9F9F9',
+        '--ink':       '#034D32',
+        '--accent':    '#028454',
+        '--accent-bg': '#E4F3EE',
+        '--border':    '#C0DDD4'
+      };
+      Object.keys(lightVars).forEach(k => wrapper.style.setProperty(k, lightVars[k]));
+
+      const clone = sourceEl.cloneNode(true);
+      clone.style.width = '100%';
+      clone.style.maxWidth = 'none';
+      clone.style.margin = '0';
+      wrapper.appendChild(clone);
+      return wrapper;
+    }
+
     const originalLabel = 'Save as image';
 
     imageBtn.addEventListener('click', async (e) => {
@@ -1580,6 +1640,7 @@
       imageBtn.disabled = true;
       imageBtn.textContent = 'Rendering\u2026';
 
+      let wrapper = null;
       try {
         if (document.fonts && document.fonts.ready) {
           await document.fonts.ready;
@@ -1589,11 +1650,15 @@
         const resumeEl = document.getElementById('resume');
         if (!resumeEl) throw new Error('Resume element missing');
 
-        const canvas = await h2c(resumeEl, {
+        wrapper = makeRenderWrapper(resumeEl);
+        document.body.appendChild(wrapper);
+
+        const canvas = await h2c(wrapper, {
           backgroundColor: '#ffffff',
           scale: 2,
           logging: false,
-          useCORS: true
+          useCORS: true,
+          windowWidth: 900
         });
 
         const blob = await new Promise((resolve, reject) => {
@@ -1606,44 +1671,43 @@
         const filename = 'f0rtune500-resume.png';
         const file = new File([blob], filename, { type: 'image/png' });
 
-        // Path 1: Web Share with files. iOS 15+ WKWebView (incl.
-        // LinkedIn), iOS Safari, Android Chrome all support this.
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        // Only treat this as "mobile" if the UA actually looks like a
+        // phone/tablet. Desktop Chrome supports Web Share API with
+        // files now, which we explicitly don't want — desktop users
+        // expect a download.
+        const ua = navigator.userAgent || '';
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+        let handled = false;
+
+        if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({ files: [file], title: 'My f0rtune500 resume' });
-            imageBtn.textContent = originalLabel;
-            imageBtn.disabled = false;
-            return;
+            handled = true;
           } catch (err) {
-            if (err && err.name === 'AbortError') {
-              imageBtn.textContent = originalLabel;
-              imageBtn.disabled = false;
-              return;
-            }
-            // Other share errors — fall through.
+            if (err && err.name === 'AbortError') handled = true;
+            // else: fall through to download
           }
         }
 
-        // Path 2: Anchor download. Reliable on desktop browsers.
-        try {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = filename;
-          a.rel = 'noopener';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(() => URL.revokeObjectURL(url), 1500);
-          imageBtn.textContent = originalLabel;
-          imageBtn.disabled = false;
-          return;
-        } catch (err) {
-          // Fall through.
+        if (!handled) {
+          try {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.rel = 'noopener';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1500);
+            handled = true;
+          } catch (err) { /* fall through */ }
         }
 
-        // Path 3: Modal with long-press / right-click save. Backstop.
-        showSaveModal(canvas.toDataURL('image/png'));
+        if (!handled) {
+          showSaveModal(canvas.toDataURL('image/png'));
+        }
+
         imageBtn.textContent = originalLabel;
         imageBtn.disabled = false;
       } catch (err) {
@@ -1653,6 +1717,8 @@
           imageBtn.textContent = originalLabel;
           imageBtn.disabled = false;
         }, 4000);
+      } finally {
+        if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
       }
     });
   })();
