@@ -36,8 +36,30 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-20.html
+       File: f0rtune500-20260420-21.html
        Changelog:
+       v23 (2026-04-20) — Company name typography. On WebKit
+                          (LinkedIn in-app, Safari), company
+                          names rendered visually much larger
+                          than the job titles above them —
+                          inverting the hierarchy. Ron reported
+                          this as "horsey and too big" twice.
+                          Headless Chrome rendered it correctly
+                          (computed 13px / weight 500, 1px
+                          smaller than the 14px bold title), but
+                          the WebKit foreignObject path was
+                          treating sizing differently. Couldn't
+                          reproduce in my local harness.
+                          Pragmatic fix: remove ambiguity at the
+                          CSS level. Company is now 12px regular
+                          (was 13px / weight 500), same size as
+                          bullets and clearly smaller than the
+                          14px bold title regardless of renderer.
+                          Accent green preserved for brand cue.
+                          Final hierarchy: Title (14 bold) >
+                          Company (12 regular green) > Bullets
+                          (12 regular, muted dot marker). No
+                          renderer should be able to flip this.
        v22 (2026-04-20) — Bullet markers via inline element, not
                           CSS pseudo-element. v21's
                           .r-bullets li::before approach with
@@ -829,9 +851,9 @@
       white-space: nowrap;
     }
     .r-company {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--accent);
-      font-weight: 500;
+      font-weight: 400;
       margin: 1px 0 6px;
     }
     .r-bullets {
@@ -1077,7 +1099,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-20</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-21</span>
     </div>
   </div>
 
