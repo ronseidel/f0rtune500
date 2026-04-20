@@ -36,8 +36,28 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-06.html
+       File: f0rtune500-20260420-07.html
        Changelog:
+       v09 (2026-04-20) — Bring back detection, smarter this time.
+                          Allowlist model: Save as PDF only shows
+                          when window.print() is known to work.
+                          Otherwise hidden, and Save as image is
+                          promoted to primary.
+                          Three-layer detection in canReliablyPrint():
+                            1. In-app denylist (LinkedIn, FB, IG,
+                               X, TikTok, WhatsApp, Slack, Line,
+                               WeChat, etc.) — broad name match,
+                               catches variants and future builds.
+                            2. iOS: requires Safari/ OR a known
+                               third-party iOS browser token
+                               (CriOS, FxiOS, EdgiOS, etc.). Plain
+                               WKWebView used by apps fails this.
+                            3. Android: blocks "; wv)" and requires
+                               a real browser product token.
+                          Errs toward hiding PDF: false positive =
+                          user sees one button that works; false
+                          negative = user sees a broken one. 12
+                          UA test cases verified pre-ship.
        v08 (2026-04-20) — Killed the UA detection. Real fix.
                           Problem: LinkedIn's current iOS UA
                           doesn't include any identifier my regex
@@ -773,7 +793,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-06</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-07</span>
     </div>
   </div>
 
@@ -1409,6 +1429,55 @@
   const backBtn   = document.getElementById('backBtn');
   const regenBtn  = document.getElementById('regenBtn');
   const printBtn  = document.getElementById('printBtn');
+  const imgBtn    = document.getElementById('imageBtn');
+
+  /* =============================================================
+     canReliablyPrint() — allowlist-style detection (v09)
+     Returns true only for environments where window.print() is
+     known to surface a working "Save as PDF" option. When false,
+     we hide the PDF button entirely and promote "Save as image"
+     to primary. Errs toward hiding PDF: a false positive just
+     means a user sees one save button instead of two; a false
+     negative means a broken button they can tap.
+     ============================================================= */
+  function canReliablyPrint() {
+    const ua = navigator.userAgent || '';
+
+    // Signal 1: known in-app browsers. Broad patterns — match the
+    // app name anywhere in the UA, not a specific version suffix,
+    // so we catch LinkedIn/LinkedInApp/LinkedIn-iOS and future
+    // variants in one shot.
+    const inApp = /LinkedIn|FBAN|FBAV|FBIOS|FB_IAB|FBDV|Instagram|Twitter|TikTok|musical_ly|WhatsApp|Slack|MicroMessenger|Line\/|Snapchat|Pinterest|Discord|YahooMobile|MessengerForiOS|GSA\/|Dropbox|KAKAOTALK|NAVER|Daum/i;
+    if (inApp.test(ua)) return false;
+
+    // Signal 2: iOS must have a known browser token. Real Safari
+    // and SFSafariViewController include "Safari/"; third-party
+    // iOS browsers include CriOS / FxiOS / EdgiOS / etc. Plain
+    // WKWebView used by apps usually omits all of these.
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    if (isIOS) {
+      return /Safari\/\d|CriOS\/|FxiOS\/|EdgiOS\/|OPiOS\/|YaBrowser\/|FirefoxIOS|DuckDuckGo|mercury|iCab/i.test(ua);
+    }
+
+    // Signal 3: Android WebView carries "; wv)". Real browsers
+    // also include a product token.
+    const isAndroid = /Android/i.test(ua);
+    if (isAndroid) {
+      if (/;\s*wv\)/i.test(ua)) return false;
+      return /Chrome\/|Firefox\/|SamsungBrowser\/|OPR\/|EdgA\/|UCBrowser|MiuiBrowser|HuaweiBrowser/i.test(ua);
+    }
+
+    // Desktop — window.print() is reliable.
+    return true;
+  }
+
+  // Apply on load: if PDF isn't reliable here, hide the button and
+  // promote Save as image from secondary -> primary so the working
+  // save path gets full visual weight.
+  if (!canReliablyPrint()) {
+    if (printBtn) printBtn.style.display = 'none';
+    if (imgBtn) imgBtn.classList.remove('secondary');
+  }
 
   // Capture the page's original title so we can restore it later.
   // The title drives the default PDF filename when the user prints, so on
