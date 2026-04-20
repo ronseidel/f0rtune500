@@ -36,8 +36,51 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-23.html
+       File: f0rtune500-20260420-24.html
        Changelog:
+       v26 (2026-04-20) — Root cause found: iOS Safari text
+                          autosizer. Diagnosed by measuring Ron's
+                          uploaded render pixel-by-pixel:
+                          <p class="r-company"> was rendering
+                          21–50% BIGGER than CSS specified while
+                          <h3 class="r-title"> was rendering 4–
+                          25% SMALLER. That's the signature of
+                          WebKit's text-size-adjust "auto"
+                          heuristic selectively inflating body-
+                          text paragraphs to mobile-readable
+                          sizes while leaving headings at spec.
+                          Headless Chrome couldn't reproduce
+                          because its autosizer is effectively a
+                          no-op on desktop viewports, so the SVG
+                          output looked fine in the local
+                          harness. modern-screenshot skipped
+                          serializing text-size-adjust because
+                          its computed value was the default
+                          ("auto"), and defaults aren't
+                          inlined — so the property never made
+                          it into the SVG foreignObject, and
+                          WebKit applied its own heuristic at
+                          render time.
+                          Fix (three layers of defense):
+                          • Set -webkit-text-size-adjust: 100%
+                            and text-size-adjust: 100% on
+                            html/body in the <style> block
+                          • Set both on the off-screen export
+                            wrapper
+                          • Walk clone.querySelectorAll('*') and
+                            stamp both as inline styles on every
+                            descendant before calling domToBlob
+                          Verified text-size-adjust: 100% is now
+                          in the serialized SVG (it wasn't
+                          before). When WebKit sees an explicit
+                          value, it bypasses the autosizer.
+                          Lesson for 0fam template: when a render
+                          diverges between Chrome and WebKit and
+                          the serialized intermediate (SVG) shows
+                          correct values, look for properties
+                          that default to "auto" with platform-
+                          specific behavior. text-size-adjust is
+                          the classic one for text-sizing bugs.
        v25 (2026-04-20) — Swapped html-to-image for
                           modern-screenshot. v24's inline-style
                           fix did not resolve the WebKit render
@@ -619,6 +662,11 @@
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      /* Prevent iOS Safari from auto-inflating "body text" — its
+         heuristic selectively boosts <p> elements in foreignObject
+         renders, which inverts the resume's type hierarchy. */
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
 
     /* ---------- App shell ---------- */
@@ -1164,7 +1212,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-23</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-24</span>
     </div>
   </div>
 
@@ -1960,7 +2008,7 @@
         const LETTER_H = 1061;
         const wrap = document.createElement('div');
         wrap.setAttribute('aria-hidden', 'true');
-        wrap.style.cssText = 'position:fixed;top:0;left:-99999px;width:820px;background:#ffffff;pointer-events:none;';
+        wrap.style.cssText = 'position:fixed;top:0;left:-99999px;width:820px;background:#ffffff;pointer-events:none;-webkit-text-size-adjust:100%;text-size-adjust:100%;';
         // Force light-mode CSS vars at the wrapper so they cascade
         // to the cloned resume regardless of the user's OS theme.
         wrap.style.setProperty('--bg',        '#F9F9F9');
@@ -1977,8 +2025,24 @@
         clone.style.maxWidth = 'none';
         clone.style.margin = '0';
         clone.style.boxSizing = 'border-box';
+        // Also force text-size-adjust on the clone itself so it's
+        // explicitly in the computed styles that modern-screenshot
+        // serializes, not just inherited from the wrapper.
+        clone.style.setProperty('-webkit-text-size-adjust', '100%');
+        clone.style.setProperty('text-size-adjust', '100%');
         wrap.appendChild(clone);
         document.body.appendChild(wrap);
+
+        // Walk every element in the clone and stamp text-size-adjust
+        // as an inline style. iOS Safari's text autosizer evaluates
+        // per-element, and it only backs off when the property is
+        // set explicitly in the computed style — which requires an
+        // inline attribute when the element is inside foreignObject.
+        const all = clone.querySelectorAll('*');
+        for (const el of all) {
+          el.style.setProperty('-webkit-text-size-adjust', '100%');
+          el.style.setProperty('text-size-adjust', '100%');
+        }
 
         // Force layout twice: first read measures natural height
         // at 820px width, then we set minHeight and reflow again.
