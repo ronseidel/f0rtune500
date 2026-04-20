@@ -36,8 +36,21 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-09.html
+       File: f0rtune500-20260420-10.html
        Changelog:
+       v12 (2026-04-20) — Start over moves to the bottom too.
+                          Top-of-page nav was still chrome pulling
+                          the eye before the joke landed. Zero
+                          chrome above the resume now — user reads,
+                          then decides.
+                          Desktop: Start over left, save group
+                          right (space-between).
+                          Mobile: stack order is save actions
+                          (Regen / Image / PDF), then a 12px gap,
+                          then Start over — so the escape hatch
+                          reads as a separate category, not a
+                          fourth save option, and doesn't end up
+                          under the thumb when they mean to save.
        v11 (2026-04-20) — Flip the flow. Save / Regenerate CTAs
                           move BELOW the resume content.
                           Old flow put the save buttons at the top
@@ -501,12 +514,8 @@
       gap: 10px;
       flex-wrap: wrap;
     }
-    .toolbar-top {
-      margin: 24px 0 20px;
-    }
     .toolbar-actions {
       margin: 24px 0 8px;
-      justify-content: flex-end;
     }
     .toolbar-right { display: flex; gap: 10px; }
 
@@ -517,13 +526,16 @@
       }
       .toolbar-right {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-      .toolbar-actions {
-        display: grid;
         grid-template-columns: 1fr;
         gap: 10px;
+      }
+      /* Mobile stack order: save actions first (thumb-reachable),
+         then Start over last with a gap so it reads as an escape
+         hatch and not a fourth save option. */
+      .toolbar-actions .toolbar-right { order: 1; }
+      .toolbar-actions #backBtn {
+        order: 2;
+        margin-top: 12px;
       }
     }
 
@@ -825,21 +837,20 @@
 
     <!-- ============ RESUME VIEW ============ -->
     <section class="resume-view" id="resumeView" aria-live="polite">
-      <div class="toolbar toolbar-top">
-        <button type="button" class="btn secondary" id="backBtn">← Start over</button>
-      </div>
-
       <article class="resume" id="resume"></article>
 
       <div class="toolbar toolbar-actions">
-        <button type="button" class="btn secondary" id="regenBtn">↻ Regenerate</button>
-        <button type="button" class="btn secondary" id="imageBtn">Save as image</button>
-        <button type="button" class="btn" id="printBtn">Save as PDF</button>
+        <button type="button" class="btn secondary" id="backBtn">← Start over</button>
+        <div class="toolbar-right">
+          <button type="button" class="btn secondary" id="regenBtn">↻ Regenerate</button>
+          <button type="button" class="btn secondary" id="imageBtn">Save as image</button>
+          <button type="button" class="btn" id="printBtn">Save as PDF</button>
+        </div>
       </div>
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-09</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-10</span>
     </div>
   </div>
 
