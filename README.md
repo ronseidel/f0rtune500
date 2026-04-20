@@ -61,4 +61,4 @@ This is satire. Do not submit a f0rtune500 resume to an actual job application. 
 
 ## Credits
 
-Built by [Ron Seidel](https://rontheron.com) under RIGHTSIDEOUT LLC dba 0utput.
+Built by [Ron Seidel](https://rontheron.com).
