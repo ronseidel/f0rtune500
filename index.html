@@ -36,8 +36,33 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-10.html
+       File: f0rtune500-20260420-11.html
        Changelog:
+       v13 (2026-04-20) — Two fixes, both honesty-over-cleverness.
+                          1. PDF visibility. Every UA-based webview
+                             heuristic kept letting LinkedIn
+                             through — their UA is too close to
+                             Safari for any loose-enough rule to
+                             discriminate. Replaced the allowlist
+                             with a simple rule: desktop shows
+                             PDF, all mobile hides it. Mobile
+                             users always get Save as image, which
+                             works in every context. Loses nothing
+                             worth keeping — mobile Safari users
+                             who wanted a PDF via print can
+                             screenshot or use the image path.
+                          2. Narrow image on mobile. The wrapper-
+                             clone approach was losing layout
+                             because html2canvas also clones the
+                             DOM internally into an iframe — the
+                             double clone broke dimensions.
+                             Switched to html2canvas's own
+                             onclone callback, which mutates the
+                             library's internal clone directly.
+                             Forces width:820px, maxWidth:none,
+                             and light-mode CSS variables on the
+                             cloned element in one pass. No more
+                             tall narrow output.
        v12 (2026-04-20) — Start over moves to the bottom too.
                           Top-of-page nav was still chrome pulling
                           the eye before the joke landed. Zero
@@ -850,7 +875,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-10</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-11</span>
     </div>
   </div>
 
@@ -1489,42 +1514,21 @@
   const imgBtn    = document.getElementById('imageBtn');
 
   /* =============================================================
-     canReliablyPrint() — allowlist-style detection (v09)
-     Returns true only for environments where window.print() is
-     known to surface a working "Save as PDF" option. When false,
-     we hide the PDF button entirely and promote "Save as image"
-     to primary. Errs toward hiding PDF: a false positive just
-     means a user sees one save button instead of two; a false
-     negative means a broken button they can tap.
+     canReliablyPrint() — desktop-only allowlist (v13)
+     Previous versions tried UA-based webview detection. LinkedIn
+     and others slip through — their UAs are close enough to
+     Safari/Chrome that any rule loose enough to pass real mobile
+     browsers also passes in-app webviews.
+     Honest fix: only show "Save as PDF" on desktop. Mobile users
+     (including all in-app webviews) get Save as image, which
+     produces the same visual artifact via a different path and
+     works in every mobile context.
      ============================================================= */
   function canReliablyPrint() {
     const ua = navigator.userAgent || '';
-
-    // Signal 1: known in-app browsers. Broad patterns — match the
-    // app name anywhere in the UA, not a specific version suffix,
-    // so we catch LinkedIn/LinkedInApp/LinkedIn-iOS and future
-    // variants in one shot.
-    const inApp = /LinkedIn|FBAN|FBAV|FBIOS|FB_IAB|FBDV|Instagram|Twitter|TikTok|musical_ly|WhatsApp|Slack|MicroMessenger|Line\/|Snapchat|Pinterest|Discord|YahooMobile|MessengerForiOS|GSA\/|Dropbox|KAKAOTALK|NAVER|Daum/i;
-    if (inApp.test(ua)) return false;
-
-    // Signal 2: iOS must have a known browser token. Real Safari
-    // and SFSafariViewController include "Safari/"; third-party
-    // iOS browsers include CriOS / FxiOS / EdgiOS / etc. Plain
-    // WKWebView used by apps usually omits all of these.
-    const isIOS = /iPhone|iPad|iPod/i.test(ua);
-    if (isIOS) {
-      return /Safari\/\d|CriOS\/|FxiOS\/|EdgiOS\/|OPiOS\/|YaBrowser\/|FirefoxIOS|DuckDuckGo|mercury|iCab/i.test(ua);
-    }
-
-    // Signal 3: Android WebView carries "; wv)". Real browsers
-    // also include a product token.
-    const isAndroid = /Android/i.test(ua);
-    if (isAndroid) {
-      if (/;\s*wv\)/i.test(ua)) return false;
-      return /Chrome\/|Firefox\/|SamsungBrowser\/|OPR\/|EdgA\/|UCBrowser|MiuiBrowser|HuaweiBrowser/i.test(ua);
-    }
-
-    // Desktop — window.print() is reliable.
+    // Any mobile signal → hide PDF. Includes iOS, iPadOS (in Mobile
+    // mode), Android, and generic Mobile token.
+    if (/iPhone|iPad|iPod|Android|Mobile/i.test(ua)) return false;
     return true;
   }
 
@@ -1639,38 +1643,6 @@
       content.querySelector('.save-modal-close').addEventListener('click', close);
     }
 
-    function makeRenderWrapper(sourceEl) {
-      const wrapper = document.createElement('div');
-      wrapper.setAttribute('aria-hidden', 'true');
-      wrapper.style.cssText = [
-        'position:absolute',
-        'top:0',
-        'left:-10000px',
-        'width:820px',
-        'background:#ffffff',
-        'padding:48px',
-        'box-sizing:border-box',
-        'color-scheme:light'
-      ].join(';');
-      // Force light-mode values for the CSS custom properties so the
-      // PNG looks the same regardless of the user's OS theme.
-      const lightVars = {
-        '--bg':        '#F9F9F9',
-        '--ink':       '#034D32',
-        '--accent':    '#028454',
-        '--accent-bg': '#E4F3EE',
-        '--border':    '#C0DDD4'
-      };
-      Object.keys(lightVars).forEach(k => wrapper.style.setProperty(k, lightVars[k]));
-
-      const clone = sourceEl.cloneNode(true);
-      clone.style.width = '100%';
-      clone.style.maxWidth = 'none';
-      clone.style.margin = '0';
-      wrapper.appendChild(clone);
-      return wrapper;
-    }
-
     const originalLabel = 'Save as image';
 
     imageBtn.addEventListener('click', async (e) => {
@@ -1678,7 +1650,6 @@
       imageBtn.disabled = true;
       imageBtn.textContent = 'Rendering\u2026';
 
-      let wrapper = null;
       try {
         if (document.fonts && document.fonts.ready) {
           await document.fonts.ready;
@@ -1688,20 +1659,42 @@
         const resumeEl = document.getElementById('resume');
         if (!resumeEl) throw new Error('Resume element missing');
 
-        wrapper = makeRenderWrapper(resumeEl);
-        document.body.appendChild(wrapper);
-
-        const canvas = await h2c(wrapper, {
+        // html2canvas makes its own internal clone of the document
+        // into an iframe before rendering. We use its onclone hook
+        // to override width and colors on THAT clone directly —
+        // simpler and more reliable than maintaining our own
+        // off-screen clone wrapper.
+        const canvas = await h2c(resumeEl, {
           backgroundColor: '#ffffff',
           scale: 2,
           logging: false,
           useCORS: true,
-          windowWidth: 900
+          windowWidth: 900,  // desktop-mode media queries in the clone
+          onclone: function(doc, el) {
+            // Force desktop render width so mobile doesn't produce
+            // a narrow, tall tower.
+            el.style.width = '820px';
+            el.style.maxWidth = 'none';
+            el.style.margin = '0';
+
+            // Force light-mode CSS variable values so the PNG looks
+            // the same regardless of the user's OS theme.
+            const root = doc.documentElement;
+            root.style.setProperty('--bg',        '#F9F9F9');
+            root.style.setProperty('--ink',       '#034D32');
+            root.style.setProperty('--accent',    '#028454');
+            root.style.setProperty('--accent-bg', '#E4F3EE');
+            root.style.setProperty('--border',    '#C0DDD4');
+
+            // Also set color-scheme to light so any prefers-color-scheme
+            // queries inside the cloned iframe resolve to light.
+            root.style.setProperty('color-scheme', 'light');
+          }
         });
 
-        const blob = await new Promise((resolve, reject) => {
+        const blob = await new Promise(function(resolve, reject) {
           canvas.toBlob(
-            b => b ? resolve(b) : reject(new Error('canvas.toBlob returned null')),
+            function(b) { b ? resolve(b) : reject(new Error('canvas.toBlob returned null')); },
             'image/png'
           );
         });
@@ -1709,12 +1702,11 @@
         const filename = 'f0rtune500-resume.png';
         const file = new File([blob], filename, { type: 'image/png' });
 
-        // Only treat this as "mobile" if the UA actually looks like a
-        // phone/tablet. Desktop Chrome supports Web Share API with
-        // files now, which we explicitly don't want — desktop users
-        // expect a download.
+        // Only treat as "mobile" if UA looks mobile. Desktop Chrome
+        // supports Web Share API with files now, which we don't want
+        // — desktop users expect a plain download.
         const ua = navigator.userAgent || '';
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+        const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(ua);
         let handled = false;
 
         if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -1723,7 +1715,6 @@
             handled = true;
           } catch (err) {
             if (err && err.name === 'AbortError') handled = true;
-            // else: fall through to download
           }
         }
 
@@ -1737,7 +1728,7 @@
             document.body.appendChild(a);
             a.click();
             a.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 1500);
+            setTimeout(function() { URL.revokeObjectURL(url); }, 1500);
             handled = true;
           } catch (err) { /* fall through */ }
         }
@@ -1751,12 +1742,10 @@
       } catch (err) {
         console.error('Image export failed:', err);
         imageBtn.textContent = 'Failed — screenshot the page';
-        setTimeout(() => {
+        setTimeout(function() {
           imageBtn.textContent = originalLabel;
           imageBtn.disabled = false;
         }, 4000);
-      } finally {
-        if (wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
       }
     });
   })();
