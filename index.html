@@ -36,8 +36,35 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-15.html
+       File: f0rtune500-20260420-16.html
        Changelog:
+       v18 (2026-04-20) — Letter (8.5:11) aspect ratio for the PNG
+                          export. PNG was previously sized to the
+                          resume's natural content height, which
+                          gave an arbitrary aspect ratio. Now it
+                          renders as a letter-paper-shaped image:
+                          820px wide, min 1061px tall (820 *
+                          11/8.5). Short content gets padded with
+                          the card's white background at the
+                          bottom so the output reads as a resume
+                          on a sheet of paper.
+                          Implementation pre-measures the resume's
+                          natural height in an off-screen hidden
+                          clone at 820px width, then uses max(1061,
+                          natural) as the export height. Long
+                          resumes exceed letter gracefully without
+                          clipping. minHeight on the cloned style
+                          alone did not work — html-to-image needs
+                          an explicit `height` option for canvas
+                          dimensions.
+                          Also added --paper and --muted to the
+                          forced light-mode CSS vars (were
+                          missing; caused dark-mode users to get
+                          wrong background/muted text colors in
+                          the PNG).
+                          Verified with a local Puppeteer + Chrome
+                          test harness — no more guessing at
+                          rendering behavior.
        v17 (2026-04-20) — Switched image library from html2canvas
                           to html-to-image. html2canvas has its
                           own text layout engine that kept
@@ -949,7 +976,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-15</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-16</span>
     </div>
   </div>
 
@@ -1727,23 +1754,44 @@
         const resumeEl = document.getElementById('resume');
         if (!resumeEl) throw new Error('Resume element missing');
 
-        // html-to-image applies the `style` object to the cloned
-        // element before rendering, which is how we force the
-        // desktop width and light-mode color variables on the
-        // cloned DOM without touching the live resume.
+        // 8.5:11 letter paper ratio. 820 wide * (11/8.5) ≈ 1061.
+        // To avoid clipping long resumes while still padding short
+        // ones to letter shape, pre-measure the resume's natural
+        // height at the 820 render width, then use max(1061,
+        // natural) as the export height. html-to-image needs an
+        // explicit `height` option — minHeight on the cloned style
+        // alone does not affect the output canvas dimensions.
+        const LETTER_H = 1061;
+        const measureWrap = document.createElement('div');
+        measureWrap.style.cssText = 'position:fixed;top:0;left:-10000px;width:820px;visibility:hidden;pointer-events:none;';
+        const measureClone = resumeEl.cloneNode(true);
+        measureClone.style.width = '820px';
+        measureClone.style.maxWidth = 'none';
+        measureClone.style.margin = '0';
+        measureWrap.appendChild(measureClone);
+        document.body.appendChild(measureWrap);
+        const naturalH = measureClone.offsetHeight;
+        measureWrap.remove();
+        const renderH = Math.max(LETTER_H, naturalH);
+
         const blob = await lib.toBlob(resumeEl, {
           backgroundColor: '#ffffff',
           pixelRatio: 2,
           width: 820,
+          height: renderH,
           style: {
             width:         '820px',
+            minHeight:     renderH + 'px',
             maxWidth:      'none',
             margin:        '0',
+            boxSizing:     'border-box',
             '--bg':        '#F9F9F9',
+            '--paper':     '#FFFFFF',
             '--ink':       '#034D32',
             '--accent':    '#028454',
             '--accent-bg': '#E4F3EE',
             '--border':    '#C0DDD4',
+            '--muted':     '#6B7F77',
             colorScheme:   'light'
           }
         });
