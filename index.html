@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="light" />
-  <meta name="theme-color" content="#F9F9F9" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#F9F9F9" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0E1613" media="(prefers-color-scheme: dark)" />
   <title>f0rtune500 — satirical resume generator</title>
 
   <!-- Description -->
@@ -35,8 +36,30 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260418-08.html
+       File: f0rtune500-20260419-01.html
        Changelog:
+       v01 (2026-04-19) — Dark mode bug fixes.
+                          • Primary .btn text was hardcoded #F9F9F9.
+                            In dark mode --ink flips to light mint, so
+                            btn bg became light and text stayed light →
+                            invisible "Generate resume" / "Save as PDF".
+                            Fix: color: var(--bg). Since --bg flips
+                            inversely to --ink, contrast is correct in
+                            both modes for free.
+                          • meta color-scheme was locked to "light".
+                            This is why Chrome/Safari painted autofilled
+                            Location and Phone fields with light-mode
+                            autofill bg while empty fields (LinkedIn)
+                            rendered correctly dark. Changed to
+                            "light dark".
+                          • Added -webkit-autofill override (inset
+                            box-shadow trick) — necessary because
+                            browser autofill still wins over normal
+                            background rules even with color-scheme set.
+                          • Added dark-variant theme-color meta for
+                            mobile address bar parity.
+                          • Dark-mode variant of select arrow SVG
+                            (was hardcoded to light-mode muted stroke).
        v08 (2026-04-18) — Hero copy rewrite. "Beautifully formatted"
                           was self-aggrandizing AI-ese; changed to
                           "cleanly formatted". Swapped "CV" → "resume"
@@ -239,11 +262,37 @@
       box-shadow: 0 0 0 3px var(--accent-bg);
       background: var(--paper);
     }
+    /* Override browser autofill styling — without this, Chrome/Safari paint
+       autofilled fields with their own light background regardless of the
+       page's dark mode, which is why filled Location/Phone fields looked
+       wrong while empty fields looked right. The inset box-shadow trick
+       wins because autofill can't override box-shadow. */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    select:-webkit-autofill {
+      -webkit-text-fill-color: var(--ink);
+      -webkit-box-shadow: 0 0 0 1000px var(--bg) inset;
+      caret-color: var(--ink);
+      border-color: var(--border);
+      transition: background-color 9999s ease-in-out 0s;
+    }
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px var(--paper) inset, 0 0 0 3px var(--accent-bg);
+      border-color: var(--accent);
+    }
     select {
       background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='none' stroke='%236B7F77' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l5 5 5-5'/></svg>");
       background-repeat: no-repeat;
       background-position: right 14px center;
       padding-right: 36px;
+    }
+    /* Dark-mode variant of the select arrow (lighter stroke color so it
+       reads against the dark input bg). */
+    @media (prefers-color-scheme: dark) {
+      select {
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='none' stroke='%238FA59C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l5 5 5-5'/></svg>");
+      }
     }
 
     .btn {
@@ -253,7 +302,7 @@
       gap: 8px;
       padding: 13px 20px;
       background: var(--ink);
-      color: #F9F9F9;
+      color: var(--bg);
       border: 1px solid var(--ink);
       border-radius: 10px;
       font: inherit;
@@ -264,7 +313,7 @@
       white-space: nowrap;
       transition: transform .05s, background .15s, box-shadow .15s;
     }
-    .btn:hover { background: var(--accent); border-color: var(--accent); }
+    .btn:hover { background: var(--accent); border-color: var(--accent); color: #F9F9F9; }
     .btn:active { transform: translateY(1px); }
     .btn.secondary {
       background: transparent;
@@ -568,7 +617,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://r0n.info" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260418-08</span>
+      an <a href="https://r0n.info" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260419-01</span>
     </div>
   </div>
 
