@@ -36,8 +36,30 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-18.html
+       File: f0rtune500-20260420-19.html
        Changelog:
+       v21 (2026-04-20) — Bullet typography. Bullets rendered at
+                          13px matched the company name size and
+                          flattened the hierarchy; browser default
+                          list markers were visually heavy and
+                          stole horizontal space. Real-resume
+                          typography puts bullets smaller than
+                          titles and companies so they read as
+                          supporting detail.
+                          Changes:
+                          • 13px → 12px on .r-bullets and li
+                          • 1.55 → 1.5 line-height (tighter)
+                          • Removed default list marker
+                          • Custom 3x3px muted-color dot via
+                            ::before, positioned with absolute
+                            offset for tight alignment
+                          Hierarchy is now Title (14 bold) >
+                          Company (13) > Bullets (12 w/ subtle
+                          dot). Reads as a printed resume, not a
+                          web card.
+                          All 7 test scenarios still fit letter
+                          height (max 948px exec / csuite desktop,
+                          912px csuite mobile) — no two-page risk.
        v20 (2026-04-20) — Mobile rendering bug. The PNG export
                           on LinkedIn / any mobile browser was
                           rendering content in a narrow ~390px
@@ -790,15 +812,28 @@
       margin: 1px 0 6px;
     }
     .r-bullets {
-      margin: 0;
-      padding-left: 18px;
-      font-size: 13px;
-      line-height: 1.55;
+      margin: 4px 0 0;
+      padding: 0;
+      list-style: none;
+      font-size: 12px;
+      line-height: 1.5;
     }
     .r-bullets li {
-      margin-bottom: 3px;
-      font-size: 13px;
-      line-height: 1.55;
+      position: relative;
+      padding-left: 14px;
+      margin-bottom: 2px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .r-bullets li::before {
+      content: "";
+      position: absolute;
+      left: 3px;
+      top: 0.6em;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--muted);
     }
 
     .r-skills {
@@ -1023,7 +1058,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-18</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-19</span>
     </div>
   </div>
 
