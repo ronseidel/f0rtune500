@@ -36,8 +36,55 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-16.html
+       File: f0rtune500-20260420-18.html
        Changelog:
+       v20 (2026-04-20) — Mobile rendering bug. The PNG export
+                          on LinkedIn / any mobile browser was
+                          rendering content in a narrow ~390px
+                          column inside the 820px letter canvas,
+                          with dead whitespace filling the right
+                          half. Desktop exports looked fine.
+                          Cause: html-to-image captures the
+                          element's already-laid-out dimensions.
+                          The `style: { width: '820px' }` option
+                          does NOT trigger reflow of the cloned
+                          element's already-measured children.
+                          On mobile, the real #resume was laid
+                          out at the mobile viewport width, and
+                          the library drew that narrow layout
+                          into the wider canvas.
+                          Fix: build an off-screen wrapper div,
+                          clone the resume into it at a forced
+                          820px width, let the browser actually
+                          lay it out (reading offsetHeight forces
+                          the reflow), then call html-to-image on
+                          the CLONE — whose computed dimensions
+                          are now correct.
+                          Verified across 7 scenarios in the
+                          local harness (5 career levels on
+                          desktop + 2 mobile viewports) before
+                          ship. Every export now fills the full
+                          820px width regardless of device.
+       v19 (2026-04-20) — Letter-page content budget.
+                          Prior bullet logic picked 2-3 bullets per
+                          role, which for exec and csuite (4 roles)
+                          could push content past one letter page.
+                          Ron had observed 2-page prints in the
+                          wild.
+                          Cap is now always 2 bullets per role.
+                          Tested all 5 career levels in the local
+                          harness — natural heights at 820px:
+                            entry  751px (letter has 310px buffer)
+                            mid    860px (201px buffer)
+                            senior 860px (201px buffer)
+                            exec   969px (92px buffer)
+                            csuite 969px (92px buffer)
+                          All fit well under 1061px letter height.
+                          Worst-case buffer (92px) accommodates
+                          4-5 wrapped bullet lines, so even unusual
+                          long-bullet wraps still fit.
+                          Letter-aspect PNG export and printed
+                          output both now reliably one page.
        v18 (2026-04-20) — Letter (8.5:11) aspect ratio for the PNG
                           export. PNG was previously sized to the
                           resume's natural content height, which
@@ -976,7 +1023,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-16</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-18</span>
     </div>
   </div>
 
@@ -1524,7 +1571,10 @@
         company: company.name,
         startYear,
         endYear,
-        bullets: pickN(company.bullets, Math.min(3, company.bullets.length === 2 ? 2 : rand(2, 3)))
+        // Always 2 bullets per role. Caps total content volume so
+        // the resume reliably fits on one letter-sized page in
+        // both the PNG export and the print path. Was 2-3 before.
+        bullets: pickN(company.bullets, Math.min(2, company.bullets.length))
       });
 
       ceiling = startYear;
@@ -1754,47 +1804,60 @@
         const resumeEl = document.getElementById('resume');
         if (!resumeEl) throw new Error('Resume element missing');
 
-        // 8.5:11 letter paper ratio. 820 wide * (11/8.5) ≈ 1061.
-        // To avoid clipping long resumes while still padding short
-        // ones to letter shape, pre-measure the resume's natural
-        // height at the 820 render width, then use max(1061,
-        // natural) as the export height. html-to-image needs an
-        // explicit `height` option — minHeight on the cloned style
-        // alone does not affect the output canvas dimensions.
-        const LETTER_H = 1061;
-        const measureWrap = document.createElement('div');
-        measureWrap.style.cssText = 'position:fixed;top:0;left:-10000px;width:820px;visibility:hidden;pointer-events:none;';
-        const measureClone = resumeEl.cloneNode(true);
-        measureClone.style.width = '820px';
-        measureClone.style.maxWidth = 'none';
-        measureClone.style.margin = '0';
-        measureWrap.appendChild(measureClone);
-        document.body.appendChild(measureWrap);
-        const naturalH = measureClone.offsetHeight;
-        measureWrap.remove();
-        const renderH = Math.max(LETTER_H, naturalH);
+        // Build an off-screen render wrapper. The key insight:
+        // html-to-image captures the element's ALREADY-LAID-OUT
+        // dimensions — it doesn't re-flow children when you pass
+        // `style: { width: '820px' }`. So on a mobile viewport,
+        // the original #resume was laid out at ~390px wide, and
+        // the library would keep that narrow column inside our
+        // wide canvas with dead space on the right.
+        // Solution: put a clone into the DOM at 820px wide,
+        // force layout, measure, and call the library on the
+        // CLONE so the laid-out dimensions are correct regardless
+        // of the user's device width.
 
-        const blob = await lib.toBlob(resumeEl, {
-          backgroundColor: '#ffffff',
-          pixelRatio: 2,
-          width: 820,
-          height: renderH,
-          style: {
-            width:         '820px',
-            minHeight:     renderH + 'px',
-            maxWidth:      'none',
-            margin:        '0',
-            boxSizing:     'border-box',
-            '--bg':        '#F9F9F9',
-            '--paper':     '#FFFFFF',
-            '--ink':       '#034D32',
-            '--accent':    '#028454',
-            '--accent-bg': '#E4F3EE',
-            '--border':    '#C0DDD4',
-            '--muted':     '#6B7F77',
-            colorScheme:   'light'
-          }
-        });
+        const LETTER_H = 1061;
+        const wrap = document.createElement('div');
+        wrap.setAttribute('aria-hidden', 'true');
+        wrap.style.cssText = 'position:fixed;top:0;left:-99999px;width:820px;background:#ffffff;pointer-events:none;';
+        // Force light-mode CSS vars at the wrapper so they cascade
+        // to the cloned resume regardless of the user's OS theme.
+        wrap.style.setProperty('--bg',        '#F9F9F9');
+        wrap.style.setProperty('--paper',     '#FFFFFF');
+        wrap.style.setProperty('--ink',       '#034D32');
+        wrap.style.setProperty('--accent',    '#028454');
+        wrap.style.setProperty('--accent-bg', '#E4F3EE');
+        wrap.style.setProperty('--border',    '#C0DDD4');
+        wrap.style.setProperty('--muted',     '#6B7F77');
+        wrap.style.setProperty('color-scheme', 'light');
+
+        const clone = resumeEl.cloneNode(true);
+        clone.style.width = '820px';
+        clone.style.maxWidth = 'none';
+        clone.style.margin = '0';
+        clone.style.boxSizing = 'border-box';
+        wrap.appendChild(clone);
+        document.body.appendChild(wrap);
+
+        // Force layout twice: first read measures natural height
+        // at 820px width, then we set minHeight and reflow again.
+        void clone.offsetHeight;
+        const naturalH = clone.offsetHeight;
+        const renderH = Math.max(LETTER_H, naturalH);
+        clone.style.minHeight = renderH + 'px';
+        void clone.offsetHeight;
+
+        let blob;
+        try {
+          blob = await lib.toBlob(clone, {
+            backgroundColor: '#ffffff',
+            pixelRatio: 2,
+            width: 820,
+            height: renderH
+          });
+        } finally {
+          wrap.remove();
+        }
 
         if (!blob) throw new Error('toBlob returned null');
 
