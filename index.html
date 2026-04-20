@@ -36,8 +36,40 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-22.html
+       File: f0rtune500-20260420-23.html
        Changelog:
+       v25 (2026-04-20) — Swapped html-to-image for
+                          modern-screenshot. v24's inline-style
+                          fix did not resolve the WebKit render
+                          issue on LinkedIn — company names were
+                          still rendering at ~1.5x their
+                          specified size despite explicit
+                          style="font-size:12px" inline attrs.
+                          That rules out stylesheet application
+                          as the cause. The bug is inside the
+                          library's serialization or WebKit's
+                          rendering of its output SVG. Can't
+                          debug the root cause from this side —
+                          headless Chrome renders it correctly in
+                          every test I've thrown at it.
+                          modern-screenshot is an actively
+                          maintained fork of html-to-image with
+                          WebKit-specific fixes documented in
+                          their changelog. The API is nearly
+                          identical: `toBlob(el, opts)` becomes
+                          `domToBlob(el, opts)`, `pixelRatio`
+                          becomes `scale`. Everything else
+                          (backgroundColor, width, height, style)
+                          is unchanged.
+                          Kept the inline styles from v24 as
+                          defensive redundancy.
+                          Test harness passes all 7 scenarios
+                          after swap; output visually identical
+                          in my environment.
+                          Lesson: when class-based AND inline
+                          styling both fail to affect the render
+                          consistently, the issue is in the
+                          library/runtime, not the markup.
        v24 (2026-04-20) — Inline-styled all resume typography.
                           v23's CSS-level fix (12px/400 company)
                           still rendered visually oversized on
@@ -1132,7 +1164,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-22</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-23</span>
     </div>
   </div>
 
@@ -1853,22 +1885,22 @@
     const imageBtn = document.getElementById('imageBtn');
     if (!imageBtn) return;
 
-    const LIB_URL = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js';
+    const LIB_URL = 'https://cdn.jsdelivr.net/npm/modern-screenshot@4.7.0/dist/index.js';
     let libPromise = null;
     function loadLib() {
       if (libPromise) return libPromise;
       libPromise = new Promise(function(resolve, reject) {
-        if (window.htmlToImage) return resolve(window.htmlToImage);
+        if (window.modernScreenshot) return resolve(window.modernScreenshot);
         const s = document.createElement('script');
         s.src = LIB_URL;
         s.onload = function() {
-          window.htmlToImage
-            ? resolve(window.htmlToImage)
-            : reject(new Error('html-to-image did not initialize'));
+          window.modernScreenshot
+            ? resolve(window.modernScreenshot)
+            : reject(new Error('modern-screenshot did not initialize'));
         };
         s.onerror = function() {
           libPromise = null;
-          reject(new Error('html-to-image CDN failed to load'));
+          reject(new Error('modern-screenshot CDN failed to load'));
         };
         document.head.appendChild(s);
       });
@@ -1958,9 +1990,9 @@
 
         let blob;
         try {
-          blob = await lib.toBlob(clone, {
+          blob = await lib.domToBlob(clone, {
             backgroundColor: '#ffffff',
-            pixelRatio: 2,
+            scale: 2,
             width: 820,
             height: renderH
           });
@@ -1968,7 +2000,7 @@
           wrap.remove();
         }
 
-        if (!blob) throw new Error('toBlob returned null');
+        if (!blob) throw new Error('domToBlob returned null');
 
         const filename = 'f0rtune500-resume.png';
         const file = new File([blob], filename, { type: 'image/png' });
