@@ -36,8 +36,23 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-12.html
+       File: f0rtune500-20260420-13.html
        Changelog:
+       v15 (2026-04-20) — Bullet font size in PNG export.
+                          In the html2canvas render, bullets came
+                          out much larger than the headings around
+                          them. Cause: .resume had no base
+                          font-size, and .r-bullets li had no
+                          explicit font-size — it inherited 13.5px
+                          from .r-bullets on screen (correct) but
+                          html2canvas was dropping the inheritance
+                          on list items and falling back to the
+                          browser default 16px.
+                          Fix: added font-size: 14px to .resume as
+                          a base anchor, and explicit font-size:
+                          13.5px + line-height on .r-bullets li.
+                          No visible change in-browser; fixes the
+                          PNG render.
        v14 (2026-04-20) — Symmetric vertical spacing around the
                           resume card. Brand was butted directly
                           against the resume because .brand is
@@ -581,6 +596,8 @@
       margin-top: 24px;
       box-shadow: var(--shadow);
       font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
     }
     @media (max-width: 560px) {
       .resume { padding: 32px 24px 28px; }
@@ -660,6 +677,8 @@
     }
     .r-bullets li {
       margin-bottom: 3px;
+      font-size: 13.5px;
+      line-height: 1.55;
     }
 
     .r-skills {
@@ -884,7 +903,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-12</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-13</span>
     </div>
   </div>
 
