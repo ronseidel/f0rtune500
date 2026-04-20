@@ -36,8 +36,23 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-08.html
+       File: f0rtune500-20260420-09.html
        Changelog:
+       v11 (2026-04-20) — Flip the flow. Save / Regenerate CTAs
+                          move BELOW the resume content.
+                          Old flow put the save buttons at the top
+                          of the result view — asking users to
+                          commit before reading the joke. Violates
+                          "sell before ask." New layout:
+                            Start over (top, nav)
+                            → Resume (read it)
+                            → Regenerate / Save as image / Save
+                              as PDF (bottom, decisions)
+                          Top gets only the back-out. Decision
+                          CTAs appear after the content has done
+                          its job. Mobile stacks the action row
+                          into a single column; desktop right-
+                          aligns it.
        v10 (2026-04-20) — Save as image, two real fixes.
                           1. Render width. Was capturing the resume
                              at its actual DOM width, so mobile
@@ -483,9 +498,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 24px 0 20px;
       gap: 10px;
       flex-wrap: wrap;
+    }
+    .toolbar-top {
+      margin: 24px 0 20px;
+    }
+    .toolbar-actions {
+      margin: 24px 0 8px;
+      justify-content: flex-end;
     }
     .toolbar-right { display: flex; gap: 10px; }
 
@@ -497,6 +518,11 @@
       .toolbar-right {
         display: grid;
         grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .toolbar-actions {
+        display: grid;
+        grid-template-columns: 1fr;
         gap: 10px;
       }
     }
@@ -799,20 +825,21 @@
 
     <!-- ============ RESUME VIEW ============ -->
     <section class="resume-view" id="resumeView" aria-live="polite">
-      <div class="toolbar">
+      <div class="toolbar toolbar-top">
         <button type="button" class="btn secondary" id="backBtn">← Start over</button>
-        <div class="toolbar-right">
-          <button type="button" class="btn secondary" id="regenBtn">↻ Regenerate</button>
-          <button type="button" class="btn secondary" id="imageBtn">Save as image</button>
-          <button type="button" class="btn" id="printBtn">Save as PDF</button>
-        </div>
       </div>
 
       <article class="resume" id="resume"></article>
+
+      <div class="toolbar toolbar-actions">
+        <button type="button" class="btn secondary" id="regenBtn">↻ Regenerate</button>
+        <button type="button" class="btn secondary" id="imageBtn">Save as image</button>
+        <button type="button" class="btn" id="printBtn">Save as PDF</button>
+      </div>
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-08</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-09</span>
     </div>
   </div>
 
