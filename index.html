@@ -36,8 +36,16 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-11.html
+       File: f0rtune500-20260420-12.html
        Changelog:
+       v14 (2026-04-20) — Symmetric vertical spacing around the
+                          resume card. Brand was butted directly
+                          against the resume because .brand is
+                          inline-block with no bottom margin.
+                          Added margin-top: 24px on .resume to
+                          match the 24px margin-top on the action
+                          toolbar below it. Card now sits with
+                          equal breathing room above and below.
        v13 (2026-04-20) — Two fixes, both honesty-over-cleverness.
                           1. PDF visibility. Every UA-based webview
                              heuristic kept letting LinkedIn
@@ -570,6 +578,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 56px 56px 40px;
+      margin-top: 24px;
       box-shadow: var(--shadow);
       font-family: 'Inter', sans-serif;
     }
@@ -875,7 +884,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-11</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-12</span>
     </div>
   </div>
 
