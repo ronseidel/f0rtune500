@@ -36,8 +36,32 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-03.html
+       File: f0rtune500-20260420-04.html
        Changelog:
+       v06 (2026-04-20) — Webview PDF fix that actually works.
+                          The v03-v05 attempts (window.open, then
+                          navigator.share with URL) all just shared
+                          the URL — they never produced a saveable
+                          artifact inside the webview. User was
+                          left with nothing either way.
+                          New strategy: stop trying to escape the
+                          webview. Produce the artifact inside it.
+                          • Render the resume to PNG client-side
+                            via html2canvas (CDN, preloaded in
+                            background on webview detect).
+                          • Primary: navigator.share({files:[png]}).
+                            iOS 15+ WKWebView supports this; it
+                            opens the native share sheet with the
+                            PNG attached, ready to post anywhere.
+                          • Fallback: modal with the image inline
+                            and "Long-press to Save to Photos"
+                            copy. Native OS long-press save cannot
+                            be blocked by any webview — this is
+                            the bulletproof backstop.
+                          Button relabeled "Save as image" (honest:
+                          PNG, not PDF). Banner copy updated.
+                          Real browsers still get Save as PDF via
+                          window.print() — no change for them.
        v05 (2026-04-20) — Form field consistency pass.
                           • Location is now optional (was required).
                             No reason it should be required when the
@@ -600,6 +624,68 @@
     @media print {
       .webview-banner { display: none !important; }
     }
+
+    /* ---------- Save-to-Photos modal (v06) ---------- */
+    .save-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .save-modal-scrim {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+    }
+    .save-modal-content {
+      position: relative;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      max-width: 560px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    .save-modal-hint {
+      font-size: 14px;
+      line-height: 1.45;
+      margin: 0;
+      text-align: center;
+      color: var(--ink);
+    }
+    .save-modal-hint strong { color: var(--accent); }
+    .save-modal-img {
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: block;
+      background: #fff;
+    }
+    .save-modal-close {
+      padding: 11px 16px;
+      background: var(--accent);
+      color: var(--bg);
+      border: 0;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .save-modal-close:hover { filter: brightness(1.05); }
+    @media print {
+      .save-modal { display: none !important; }
+    }
   </style>
 </head>
 <body style="background:#F9F9F9;color:#034D32;margin:0;">
@@ -691,7 +777,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-03</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-04</span>
     </div>
   </div>
 
@@ -1369,10 +1455,16 @@
   printBtn.addEventListener('click', () => window.print());
 
   /* =============================================================
-     In-app webview detection (v03, 2026-04-20)
-     LinkedIn / IG / FB / Twitter / WeChat / TikTok webviews block
-     blob downloads and window.print() silently. Show a banner and
-     swap the PDF button so users know to open in a real browser.
+     In-app webview handling (v06, 2026-04-20)
+     LinkedIn / IG / FB / Twitter / TikTok / WeChat webviews block
+     window.print() and blob downloads silently. Previous attempts
+     (window.open, navigator.share with URL) just shared the link
+     — user still couldn't get the artifact out.
+     This version produces the artifact IN the webview: renders the
+     resume to PNG via html2canvas, then either shares the file via
+     navigator.share({files:[...]}) (works in iOS 15+ WKWebView) or
+     shows a modal with the image for native long-press save — a
+     native OS behavior no webview can block.
      ============================================================= */
   (function() {
     const ua = navigator.userAgent || '';
@@ -1380,63 +1472,140 @@
       /LinkedInApp/i,
       /FBAN|FBAV|FB_IAB/i,    // Facebook (FB_IAB = in-app browser)
       /Instagram/i,
-      /Twitter/i,              // covers legacy + some X builds
+      /Twitter/i,
       /Line\//i,
       /MicroMessenger/i,       // WeChat
       /TikTok/i
     ];
     if (!inAppPatterns.some(r => r.test(ua))) return;
 
-    // Sticky dismissible banner at top of body
+    // Preload html2canvas so the button feels instant when clicked.
+    const H2C_URL = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    let h2cPromise = null;
+    function loadH2C() {
+      if (h2cPromise) return h2cPromise;
+      h2cPromise = new Promise((resolve, reject) => {
+        if (window.html2canvas) return resolve(window.html2canvas);
+        const s = document.createElement('script');
+        s.src = H2C_URL;
+        s.onload = () => window.html2canvas
+          ? resolve(window.html2canvas)
+          : reject(new Error('html2canvas did not initialize'));
+        s.onerror = () => { h2cPromise = null; reject(new Error('html2canvas CDN failed to load')); };
+        document.head.appendChild(s);
+      });
+      return h2cPromise;
+    }
+    loadH2C().catch(() => {}); // warm the cache; errors handled on click
+
+    // Sticky dismissible banner
     const banner = document.createElement('div');
     banner.className = 'webview-banner';
     banner.setAttribute('role', 'status');
     banner.innerHTML =
-      '<span>LinkedIn\u2019s browser blocks PDF downloads. Tap <strong>Share</strong> below ' +
-      'to open this in Safari or Chrome.</span>' +
+      '<span>LinkedIn\u2019s browser blocks PDF downloads. Use ' +
+      '<strong>Save as image</strong> below — share it or long-press to save.</span>' +
       '<button type="button" class="webview-banner-close" aria-label="Dismiss">&times;</button>';
     document.body.insertBefore(banner, document.body.firstChild);
     banner.querySelector('.webview-banner-close').addEventListener('click', () => {
       banner.remove();
     });
 
-    // Swap the "Save as PDF" button. Use capture phase + stopImmediate
-    // so the existing bubble-phase window.print() handler never runs.
-    // Strategy: navigator.share() (native share sheet, user picks Safari
-    // or Chrome to open there) -> clipboard copy fallback -> window.open
-    // last-ditch. Window.open alone is unreliable in LinkedIn iOS webview.
-    if (printBtn) {
-      printBtn.textContent = 'Share to save PDF';
-      printBtn.title = 'Opens your share sheet so you can open this page in Safari or Chrome and save as PDF.';
-      const originalLabel = printBtn.textContent;
+    function showSaveModal(dataUrl) {
+      const modal = document.createElement('div');
+      modal.className = 'save-modal';
+      const scrim = document.createElement('div');
+      scrim.className = 'save-modal-scrim';
+      const content = document.createElement('div');
+      content.className = 'save-modal-content';
+      content.innerHTML =
+        '<p class="save-modal-hint">Long-press the image and tap <strong>Save to Photos</strong>, ' +
+        'or tap <strong>Share</strong> to post it anywhere.</p>' +
+        '<img class="save-modal-img" alt="Your f0rtune500 resume" />' +
+        '<button type="button" class="save-modal-close">Done</button>';
+      content.querySelector('.save-modal-img').src = dataUrl;
+      modal.appendChild(scrim);
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+      const close = () => modal.remove();
+      scrim.addEventListener('click', close);
+      content.querySelector('.save-modal-close').addEventListener('click', close);
+    }
 
-      printBtn.addEventListener('click', async (e) => {
-        e.stopImmediatePropagation();
-        e.preventDefault();
+    if (!printBtn) return;
+    const originalLabel = 'Save as image';
+    printBtn.textContent = originalLabel;
+    printBtn.title = 'Renders your resume as a PNG. Share it or long-press to save to Photos.';
 
-        const url = window.location.href;
+    printBtn.addEventListener('click', async (e) => {
+      e.stopImmediatePropagation();
+      e.preventDefault();
 
-        if (navigator.share) {
+      printBtn.disabled = true;
+      printBtn.textContent = 'Rendering\u2026';
+
+      try {
+        // Make sure @font-face fonts are ready so the PNG isn't rendered
+        // with fallback typefaces.
+        if (document.fonts && document.fonts.ready) {
+          await document.fonts.ready;
+        }
+
+        const h2c = await loadH2C();
+        const resumeEl = document.getElementById('resume');
+        if (!resumeEl) throw new Error('Resume element missing');
+
+        const canvas = await h2c(resumeEl, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+          logging: false,
+          useCORS: true
+        });
+
+        // Convert to blob (smaller/cleaner than dataURL for sharing)
+        const blob = await new Promise((resolve, reject) => {
+          canvas.toBlob(
+            b => b ? resolve(b) : reject(new Error('canvas.toBlob returned null')),
+            'image/png'
+          );
+        });
+
+        const filename = 'f0rtune500-resume.png';
+        const file = new File([blob], filename, { type: 'image/png' });
+
+        // Primary: native file share. Works in iOS 15+ WKWebView.
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
-            await navigator.share({ title: 'f0rtune500', url: url });
+            await navigator.share({
+              files: [file],
+              title: 'My f0rtune500 resume'
+            });
+            printBtn.textContent = originalLabel;
+            printBtn.disabled = false;
             return;
           } catch (err) {
-            if (err && err.name === 'AbortError') return; // user cancelled
+            if (err && err.name === 'AbortError') {
+              printBtn.textContent = originalLabel;
+              printBtn.disabled = false;
+              return;
+            }
+            // Share failed for another reason — fall through to modal.
           }
         }
 
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          try {
-            await navigator.clipboard.writeText(url);
-            printBtn.textContent = '\u2713 Link copied — paste in Safari';
-            setTimeout(() => { printBtn.textContent = originalLabel; }, 3500);
-            return;
-          } catch (err) { /* fall through */ }
-        }
-
-        window.open(url, '_blank');
-      }, true);
-    }
+        // Fallback: modal with long-press-save. Works in every webview.
+        showSaveModal(canvas.toDataURL('image/png'));
+        printBtn.textContent = originalLabel;
+        printBtn.disabled = false;
+      } catch (err) {
+        console.error('Image export failed:', err);
+        printBtn.textContent = 'Failed — screenshot the page';
+        setTimeout(() => {
+          printBtn.textContent = originalLabel;
+          printBtn.disabled = false;
+        }, 4000);
+      }
+    }, true);
   })();
   </script>
 </body>
