@@ -36,8 +36,21 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260419-02.html
+       File: f0rtune500-20260420-01.html
        Changelog:
+       v03 (2026-04-20) — In-app webview support.
+                          LinkedIn / Instagram / Facebook / Twitter /
+                          WeChat / TikTok in-app browsers silently
+                          block window.print() and blob downloads, so
+                          "Save as PDF" just did nothing. Detect these
+                          webviews via UA and:
+                          • Show a sticky, dismissible top banner:
+                            "Tap ⋯ → Open in Browser to save as PDF."
+                          • Swap the "Save as PDF" button to "Open in
+                            Browser" and attempt window.open(self,
+                            '_blank') to break out of the webview.
+                          • Both hidden from print output.
+                          Real browsers see no change.
        v02 (2026-04-19) — Footer "0fam" link now points to 0utput.co
                           (the family directory) instead of r0n.info
                           (author page). Every 0fam app footer should
@@ -531,6 +544,41 @@
       .r-contact, .r-dates, .r-refs { color: #444 !important; }
       .r-satire { color: #999 !important; border-top-color: #ccc !important; }
       .r-role { break-inside: avoid; }
+    }
+
+    /* ---------- In-app webview banner (v03) ---------- */
+    .webview-banner {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      background: var(--accent-bg);
+      color: var(--ink);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .webview-banner strong { color: var(--accent); font-weight: 700; }
+    .webview-banner-close {
+      flex-shrink: 0;
+      background: transparent;
+      border: 0;
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 6px;
+      opacity: 0.55;
+      border-radius: 4px;
+    }
+    .webview-banner-close:hover,
+    .webview-banner-close:focus-visible { opacity: 1; outline: none; }
+    @media print {
+      .webview-banner { display: none !important; }
     }
   </style>
 </head>
@@ -1299,6 +1347,51 @@
   });
 
   printBtn.addEventListener('click', () => window.print());
+
+  /* =============================================================
+     In-app webview detection (v03, 2026-04-20)
+     LinkedIn / IG / FB / Twitter / WeChat / TikTok webviews block
+     blob downloads and window.print() silently. Show a banner and
+     swap the PDF button so users know to open in a real browser.
+     ============================================================= */
+  (function() {
+    const ua = navigator.userAgent || '';
+    const inAppPatterns = [
+      /LinkedInApp/i,
+      /FBAN|FBAV|FB_IAB/i,    // Facebook (FB_IAB = in-app browser)
+      /Instagram/i,
+      /Twitter/i,              // covers legacy + some X builds
+      /Line\//i,
+      /MicroMessenger/i,       // WeChat
+      /TikTok/i
+    ];
+    if (!inAppPatterns.some(r => r.test(ua))) return;
+
+    // Sticky dismissible banner at top of body
+    const banner = document.createElement('div');
+    banner.className = 'webview-banner';
+    banner.setAttribute('role', 'status');
+    banner.innerHTML =
+      '<span>Tap <strong>⋯ &rarr; Open in Browser</strong> to save as PDF. ' +
+      'LinkedIn\u2019s in-app browser blocks downloads.</span>' +
+      '<button type="button" class="webview-banner-close" aria-label="Dismiss">&times;</button>';
+    document.body.insertBefore(banner, document.body.firstChild);
+    banner.querySelector('.webview-banner-close').addEventListener('click', () => {
+      banner.remove();
+    });
+
+    // Swap the "Save as PDF" button. Use capture phase + stopImmediate
+    // so the existing bubble-phase window.print() handler never runs.
+    if (printBtn) {
+      printBtn.textContent = 'Open in Browser';
+      printBtn.title = 'LinkedIn blocks downloads. Tap to open in your browser.';
+      printBtn.addEventListener('click', (e) => {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        window.open(window.location.href, '_blank');
+      }, true);
+    }
+  })();
   </script>
 </body>
 </html>
