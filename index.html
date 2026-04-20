@@ -36,8 +36,41 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-21.html
+       File: f0rtune500-20260420-22.html
        Changelog:
+       v24 (2026-04-20) — Inline-styled all resume typography.
+                          v23's CSS-level fix (12px/400 company)
+                          still rendered visually oversized on
+                          LinkedIn's WebKit webview — company
+                          names dominated the 14px bold titles
+                          above them. My headless Chrome renders
+                          it correctly, so either html-to-image's
+                          SVG foreignObject path on WebKit is
+                          selectively dropping class-based rules,
+                          or something in the webview's
+                          stylesheet application is racy.
+                          Fix: moved every critical font-size,
+                          font-weight, and line-height from the
+                          <style> block into inline `style=""`
+                          attributes on each element in the
+                          render template. Inline styles can't be
+                          dropped by a rasterization pass — they
+                          live on the element as attributes, not
+                          as cascading rules. This removes any
+                          cross-browser stylesheet application
+                          ambiguity from the rendering path.
+                          Kept the class-based rules too so
+                          on-screen styling still works if JS
+                          tree-shakes the inline attrs; the two
+                          mirror each other.
+                          Test harness still green; no content
+                          budget impact.
+                          Lesson for 0fam template: any element
+                          involved in rasterization should have
+                          its critical sizing as an inline style,
+                          not just a class. Classes are fine for
+                          screens; attributes are bulletproof for
+                          exports.
        v23 (2026-04-20) — Company name typography. On WebKit
                           (LinkedIn in-app, Safari), company
                           names rendered visually much larger
@@ -1099,7 +1132,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-21</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-22</span>
     </div>
   </div>
 
@@ -1692,38 +1725,38 @@
     const rolesHTML = data.roles.map(r => `
       <div class="r-role">
         <div class="r-role-header">
-          <h3 class="r-title">${esc(r.title)}</h3>
-          <span class="r-dates">${r.startYear} – ${r.endYear}</span>
+          <h3 class="r-title" style="font-size:14px;font-weight:700;margin:0;line-height:1.4">${esc(r.title)}</h3>
+          <span class="r-dates" style="font-size:12px;font-weight:400">${r.startYear} – ${r.endYear}</span>
         </div>
-        <p class="r-company">${esc(r.company)}</p>
-        <ul class="r-bullets">
-          ${r.bullets.map(b => `<li><span class="r-bullet-mark">·</span><span>${esc(b)}</span></li>`).join('')}
+        <p class="r-company" style="font-size:12px;font-weight:400;margin:1px 0 6px;line-height:1.4">${esc(r.company)}</p>
+        <ul class="r-bullets" style="font-size:12px;font-weight:400;line-height:1.45">
+          ${r.bullets.map(b => `<li style="font-size:12px;font-weight:400;line-height:1.45"><span class="r-bullet-mark" style="font-weight:700">·</span><span>${esc(b)}</span></li>`).join('')}
         </ul>
       </div>
     `).join('');
 
     return `
-      <h1 class="r-name">${esc(form.name)}</h1>
-      <p class="r-contact">${contactHTML}</p>
+      <h1 class="r-name" style="font-size:26px;font-weight:800;margin:0 0 6px;line-height:1.2">${esc(form.name)}</h1>
+      <p class="r-contact" style="font-size:12px;font-weight:400;margin:0 0 24px;line-height:1.6">${contactHTML}</p>
 
       <div class="r-section">
-        <h2>Professional Summary</h2>
-        <p class="r-summary">${esc(data.summary)}</p>
+        <h2 style="font-size:11px;font-weight:700;letter-spacing:0.14em;margin:0 0 10px;padding-bottom:6px">Professional Summary</h2>
+        <p class="r-summary" style="font-size:13px;font-weight:400;line-height:1.55;margin:0">${esc(data.summary)}</p>
       </div>
 
       <div class="r-section">
-        <h2>Experience</h2>
+        <h2 style="font-size:11px;font-weight:700;letter-spacing:0.14em;margin:0 0 10px;padding-bottom:6px">Experience</h2>
         ${rolesHTML}
       </div>
 
       <div class="r-section">
-        <h2>Skills</h2>
-        <p class="r-skills">${data.skills.map(esc).join(' · ')}</p>
+        <h2 style="font-size:11px;font-weight:700;letter-spacing:0.14em;margin:0 0 10px;padding-bottom:6px">Skills</h2>
+        <p class="r-skills" style="font-size:13px;font-weight:400;line-height:1.6;margin:0">${data.skills.map(esc).join(' · ')}</p>
       </div>
 
       <div class="r-section">
-        <h2>References</h2>
-        <p class="r-refs">${esc(data.references)}</p>
+        <h2 style="font-size:11px;font-weight:700;letter-spacing:0.14em;margin:0 0 10px;padding-bottom:6px">References</h2>
+        <p class="r-refs" style="font-size:12px;font-weight:400;font-style:italic;margin:0">${esc(data.references)}</p>
       </div>
 
       <div class="r-satire">satire · built with f0rtune500</div>
