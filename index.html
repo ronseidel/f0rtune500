@@ -38,27 +38,26 @@
        f0rtune500 — satirical resume generator (0fam)
        File: f0rtune500-20260420-32.html
        Changelog:
-       v34 (2026-04-20) — Hero copy trim.
+       v34 (2026-04-20) — Hero copy trim (and uncorrection).
                           • "cleanly formatted resume" →
                             "clean resume" — tighter and
                             the literal word for what we
                             just cleaned up over several
                             days of typography work.
-                          • Split "Print it, share it,
-                            frame it." onto its own
-                            paragraph. Imperative verbs on
-                            their own line punch harder
-                            than trailing a longer
-                            sentence.
-                          • Removed "No one can prove you
-                            didn't work at these companies"
-                            from the hero. Overexplains
-                            when the user is already on
-                            the page. Kept it in the
-                            meta/OG description tags
-                            where it serves as the
-                            click-through hook *before*
-                            someone's on the page.
+                          • Initially dropped "No one can
+                            prove you didn't work at these
+                            companies" and split "Print
+                            it, share it, frame it." onto
+                            its own line. Ron pushed back
+                            and was right — the "No one
+                            can prove" line is load-
+                            bearing (premise + punchline +
+                            legal-disclaimer cadence all
+                            in one), while "Print it,
+                            share it, frame it" is single-
+                            purpose imperative. Restored
+                            the joke, dropped the
+                            imperative.
                           • Removed max-width: 560px from
                             .hero p. The constraint was
                             forcing "names." to orphan on
@@ -69,9 +68,15 @@
                             .hero p — future-proofs against
                             orphans at narrower viewports
                             or longer future copy.
-                          On-page for humans, meta for
-                          robots — different surfaces,
-                          different copy jobs.
+                          Lesson banked for the 0fam
+                          template: when two candidate
+                          lines fight for the same slot,
+                          the one doing the most jobs
+                          wins. "Confident brevity" is
+                          seductive but can cut load-
+                          bearing copy. Single-purpose
+                          imperatives lose to multi-
+                          purpose punchlines every time.
        v33 (2026-04-20) — Fraunces on the hero h1.
                           Ron's call — pulling the serif
                           from 0utput.co means the whole
@@ -1574,7 +1579,7 @@
       <div class="hero">
         <h1>Your resume, but at <span class="defunct">iconic</span> defunct American companies.</h1>
         <p>Fill out the form. Get a clean resume full of bankrupt Fortune 500 names.</p>
-        <p>Print it, share it, frame it.</p>
+        <p>No one can prove you <em>didn't</em> work at these companies.</p>
       </div>
 
       <form class="card" id="resumeForm" novalidate>
