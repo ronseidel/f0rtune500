@@ -36,8 +36,26 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-28.html
+       File: f0rtune500-20260420-29.html
        Changelog:
+       v31 (2026-04-20) — Removed career-level quips. In
+                          practice the quip was narrating
+                          what the icon + name already
+                          communicated ("honey, i got
+                          promoted" underneath a trending-up
+                          arrow + "Mid-Level" label). The
+                          real joke of the app is in the
+                          resume output, not in the form
+                          chrome; the form should be a
+                          precision instrument that gets the
+                          user to the payoff quickly.
+                          Removed: the .career-quip div
+                          below the grid, the .career-quip
+                          CSS block, the CAREER_QUIPS JS map
+                          and its radio change listener.
+                          Net effect: industry and career
+                          grids are now structural siblings
+                          with identical rhythm.
        v30 (2026-04-20) — Copy + spacing polish.
                           • "Full name" → "Your name". Ron's
                             call — the old label read as "none
@@ -957,19 +975,6 @@
       margin-top: auto;
     }
 
-    /* The quip that appears below the career grid — updates to match
-       whatever career level is currently selected. Fixed min-height
-       so the grid layout doesn't jump when the quip appears. */
-    .career-quip {
-      min-height: 22px;
-      margin-top: 14px;
-      text-align: center;
-      font-size: 14px;
-      font-style: italic;
-      color: var(--muted);
-      line-height: 1.4;
-    }
-
     @media (hover: hover) {
       .picker-card:hover {
         border-color: var(--accent);
@@ -1563,7 +1568,6 @@
               <span class="picker-name">C-Suite</span>
             </label>
           </div>
-          <div class="career-quip" id="careerQuip" aria-live="polite"></div>
         </fieldset>
 
         <!-- ============ Optional flair (accordion) ============ -->
@@ -1694,7 +1698,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-28</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-29</span>
     </div>
   </div>
 
@@ -2380,24 +2384,6 @@
   const regenBtn  = document.getElementById('regenBtn');
   const printBtn  = document.getElementById('printBtn');
   const imgBtn    = document.getElementById('imageBtn');
-
-  // Career-level quips — shown under the career grid, swapped when
-  // the user picks a different level. Quips live in JS (not HTML)
-  // now so the cards themselves stay clean icon+name, with the
-  // signature line revealed below the grid on selection.
-  const CAREER_QUIPS = {
-    entry:  '"hey guys how can i help?!"',
-    mid:    '"honey, i got promoted"',
-    senior: "\"just move, i'll fix it\"",
-    exec:   '"how do i open this PDF?"',
-    csuite: '"who hired these idiots?"'
-  };
-  const careerQuipEl = document.getElementById('careerQuip');
-  document.querySelectorAll('input[name="career"]').forEach(radio => {
-    radio.addEventListener('change', e => {
-      if (careerQuipEl) careerQuipEl.textContent = CAREER_QUIPS[e.target.value] || '';
-    });
-  });
 
   /* =============================================================
      canReliablyPrint() — desktop-only allowlist (v13)
