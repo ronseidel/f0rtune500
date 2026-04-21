@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" style="background:#F9F9F9;color:#034D32;">
+<html lang="en" style="background:#FFFFFF;color:#034D32;">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -36,8 +36,83 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-32.html
+       File: f0rtune500-20260420-35.html
        Changelog:
+       v36 (2026-04-20) — Top-zone bleeds to viewport top.
+                          Previously the clip-path on .top-zone
+                          was inset(0 -100vmax) — clipping the
+                          wash at the element's top edge. Since
+                          .app has 32px top padding, there was
+                          a white strip above the wash.
+                          Changed clip-path to
+                          inset(-100vmax -100vmax 0 -100vmax),
+                          letting the box-shadow wash bleed
+                          UPWARD past the element's top to
+                          cover the body strip. Horizontal
+                          still extends 100vmax, bottom still
+                          clipped at element edge (where the
+                          zone transitions to white).
+                          Brand still sits 32px from the true
+                          top — that internal padding comes
+                          from .app and is unchanged. Content
+                          sits where it always did; only the
+                          wash extends further.
+       v35 (2026-04-20) — Unboxed the form, two-zone page.
+                          Ron's principle — card pattern is a
+                          2015–2020 product-design tic; modern
+                          editorial work lets content sit on
+                          flat sections without boxing.
+                          Final structure after a false start:
+                          • Top zone (brand + hero, now wrapped
+                            in a .top-zone div): off-white
+                            (#F9F9F9) via a full-bleed
+                            box-shadow wash with clip-path
+                            clipping vertically.
+                          • Everything else: pure white
+                            (#FFFFFF). Body, form area,
+                            inputs, picker cards, footer.
+                          First pass shipped with body white
+                          but inputs/picker-cards still --bg
+                          off-white, which made the whole form
+                          area READ as off-white despite the
+                          body being white. Ron called it out.
+                          Root cause had two layers:
+                          • The JS dark-mode enforcer was
+                            hardcoding body.style.background =
+                            '#F9F9F9' in light mode (overriding
+                            both CSS and HTML inline style).
+                            Updated to '#FFFFFF'.
+                          • <html> inline style attribute was
+                            also '#F9F9F9'. Updated to
+                            '#FFFFFF'.
+                          • input/select default bg: --bg →
+                            --paper.
+                          • .picker-card default bg: --bg →
+                            --paper.
+                          • autofill -webkit-box-shadow inset
+                            color: --bg → --paper.
+                          Selected states unchanged (accent-bg
+                          tint) — still clearly distinguished
+                          against white at-rest cards.
+                          Resume view preserved via
+                          .resume-view.active getting its own
+                          off-white full-bleed wash (since body
+                          is globally white now, the card-float
+                          effect is accomplished at the section
+                          level instead). .app:has(.resume-view
+                          .active) .hero { display: none }
+                          hides the hero text in resume view.
+                          Lesson banked: when you're trying to
+                          change "the page background" across
+                          an app with a JS theme enforcer,
+                          always grep for the enforcer FIRST
+                          and check how many layers of "where
+                          is this color set" exist (HTML inline,
+                          CSS rule, JS inline). Here there were
+                          FOUR layers (html inline, body inline,
+                          CSS rule, JS enforcer) and only
+                          changing three left the JS one as the
+                          hidden winner.
        v34 (2026-04-20) — Hero copy trim (and uncorrection).
                           • "cleanly formatted resume" →
                             "clean resume" — tighter and
@@ -909,7 +984,7 @@
 
     * { box-sizing: border-box; }
     html, body {
-      background: var(--bg);
+      background: var(--paper);
       color: var(--ink);
       margin: 0;
       padding: 0;
@@ -942,6 +1017,37 @@
       display: inline-block;
     }
     .brand .z { color: var(--accent); }
+
+    /* ---------- Off-white top zone (brand + hero) ----------
+       Body is paper-white by default. The top zone gets an
+       off-white wash that extends full-bleed via box-shadow, so
+       the hero feels like a distinct "above the waterline" area
+       separate from the white working zone below. clip-path
+       keeps the wash from spilling vertically. */
+    .top-zone {
+      background: var(--bg);
+      box-shadow: 0 0 0 100vmax var(--bg);
+      /* Clip only the bottom edge — let the wash bleed upward
+         past the element's top to cover the strip of body that
+         would otherwise show above due to .app's top padding.
+         Horizontal still extends 100vmax to viewport edges. */
+      clip-path: inset(-100vmax -100vmax 0 -100vmax);
+      padding-bottom: 8px;
+    }
+
+    /* When resume view is active, the hero hides (its messaging
+       is for form-view users only). The brand stays visible. The
+       resume view gets its own off-white full-bleed wash so the
+       resume card floats on off-white the way Ron wanted — body
+       stays white globally since JS enforces it, so the wash is
+       applied at the section level instead. */
+    .app:has(.resume-view.active) .hero { display: none; }
+    .resume-view.active {
+      background: var(--bg);
+      box-shadow: 0 0 0 100vmax var(--bg);
+      clip-path: inset(0 -100vmax);
+      padding: 24px 0 40px;
+    }
 
     /* ---------- Form view ---------- */
     .hero {
@@ -978,11 +1084,15 @@
     }
 
     form.card {
-      background: var(--paper);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: var(--shadow);
+      /* Card styling stripped — the form is no longer a floating
+         object. It sits on the body's paper-white bg as a flat
+         working zone. The off-white hero above and the off-white
+         resume view (when active) are what get full-bleed washes
+         now; white is the default. */
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 32px 0 40px;
     }
 
     .grid {
@@ -1036,7 +1146,7 @@
       gap: 6px;
       padding: 12px 10px;
       min-height: 78px;
-      background: var(--bg);
+      background: var(--paper);
       border: 1px solid var(--border);
       border-radius: 12px;
       cursor: pointer;
@@ -1168,7 +1278,7 @@
       font: inherit;
       font-size: 15px;
       color: var(--ink);
-      background: var(--bg);
+      background: var(--paper);
       border: 1px solid var(--border);
       border-radius: 10px;
       outline: none;
@@ -1191,7 +1301,7 @@
     input:-webkit-autofill:focus,
     select:-webkit-autofill {
       -webkit-text-fill-color: var(--ink);
-      -webkit-box-shadow: 0 0 0 1000px var(--bg) inset;
+      -webkit-box-shadow: 0 0 0 1000px var(--paper) inset;
       caret-color: var(--ink);
       border-color: var(--border);
       transition: background-color 9999s ease-in-out 0s;
@@ -1570,18 +1680,20 @@
     }
   </style>
 </head>
-<body style="background:#F9F9F9;color:#034D32;margin:0;">
+<body style="background:#FFFFFF;color:#034D32;margin:0;">
   <div class="app">
-    <a class="brand" href="./">f<span class="z">0</span>rtune5<span class="z">0</span><span class="z">0</span></a>
-
-    <!-- ============ FORM VIEW ============ -->
-    <section class="form-view" id="formView">
+    <!-- ============ TOP ZONE (off-white) ============ -->
+    <div class="top-zone">
+      <a class="brand" href="./">f<span class="z">0</span>rtune5<span class="z">0</span><span class="z">0</span></a>
       <div class="hero">
         <h1>Your resume, but at <span class="defunct">iconic</span> defunct American companies.</h1>
         <p>Fill out the form. Get a clean resume full of bankrupt Fortune 500 names.</p>
         <p>No one can prove you <em>didn't</em> work at these companies.</p>
       </div>
+    </div>
 
+    <!-- ============ FORM VIEW ============ -->
+    <section class="form-view" id="formView">
       <form class="card" id="resumeForm" novalidate>
         <div class="grid">
           <div class="full">
@@ -1797,7 +1909,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-32</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-35</span>
     </div>
   </div>
 
@@ -1814,10 +1926,13 @@
 
   // --- Dark mode runtime enforcement (per 0fam HTML rule) ---
   // Never rely on CSS vars alone: explicit inline styles on html+body.
+  // Body bg is now the paper-white default (v35 — page was unboxed,
+  // hero moved to an off-white top-zone full-bleed wash; everything
+  // else sits on paper white). Dark mode uses --paper dark (#141D1A).
   (function () {
     const mql = window.matchMedia('(prefers-color-scheme: dark)');
     function apply(dark) {
-      const bg = dark ? '#0E1613' : '#F9F9F9';
+      const bg = dark ? '#141D1A' : '#FFFFFF';
       const fg = dark ? '#E4F3EE' : '#034D32';
       document.documentElement.style.background = bg;
       document.documentElement.style.color = fg;
