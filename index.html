@@ -36,8 +36,32 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-35.html
+       File: f0rtune500-20260420-36.html
        Changelog:
+       v37 (2026-04-20) — Resume preview locked to letter
+                          aspect. Added aspect-ratio: 8.5 / 11
+                          and box-sizing: border-box to
+                          .resume. The on-screen card now
+                          always displays letter-paper
+                          proportions regardless of content
+                          length, matching the export output
+                          exactly.
+                          Tests now show natural=1061px
+                          across all seven scenarios (was
+                          728–924px before). Content always
+                          sits at the top; shorter resumes
+                          trail into empty white space at
+                          the bottom, mimicking a printed
+                          sheet with margin below the last
+                          line.
+                          Useful pattern for doc-preview
+                          UIs in general: if your export is
+                          fixed-aspect, force the preview
+                          to the same aspect so "what you
+                          see is what you get" actually
+                          holds. Empty trailing space reads
+                          as "it's a letter" rather than
+                          "the UI is buggy."
        v36 (2026-04-20) — Top-zone bleeds to viewport top.
                           Previously the clip-path on .top-zone
                           was inset(0 -100vmax) — clipping the
@@ -1419,6 +1443,15 @@
       font-family: 'Inter', sans-serif;
       font-size: 13px;
       line-height: 1.5;
+      /* Force letter-paper aspect on the on-screen preview so the
+         card always looks like 8.5"x11" regardless of content
+         length. Content shorter than this trails into empty space
+         at the bottom — which is how a real resume looks on
+         letter paper. Content never exceeds this in practice
+         (tests show max natural ~924px at 820px width; letter
+         aspect gives ~1061px at that width). */
+      aspect-ratio: 8.5 / 11;
+      box-sizing: border-box;
     }
     @media (max-width: 560px) {
       .resume { padding: 32px 24px 28px; }
@@ -1909,7 +1942,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-35</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-36</span>
     </div>
   </div>
 
