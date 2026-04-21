@@ -32,12 +32,74 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Fraunces:opsz,wght,SOFT@9..144,400..800,0..100&display=swap" rel="stylesheet" />
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-30.html
+       File: f0rtune500-20260420-32.html
        Changelog:
+       v34 (2026-04-20) — Hero copy trim.
+                          • "cleanly formatted resume" →
+                            "clean resume" — tighter and
+                            the literal word for what we
+                            just cleaned up over several
+                            days of typography work.
+                          • Split "Print it, share it,
+                            frame it." onto its own
+                            paragraph. Imperative verbs on
+                            their own line punch harder
+                            than trailing a longer
+                            sentence.
+                          • Removed "No one can prove you
+                            didn't work at these companies"
+                            from the hero. Overexplains
+                            when the user is already on
+                            the page. Kept it in the
+                            meta/OG description tags
+                            where it serves as the
+                            click-through hook *before*
+                            someone's on the page.
+                          • Removed max-width: 560px from
+                            .hero p. The constraint was
+                            forcing "names." to orphan on
+                            a second line. Full card width
+                            lets the subhead sit on one
+                            line at typical sizes.
+                          • Added text-wrap: pretty on
+                            .hero p — future-proofs against
+                            orphans at narrower viewports
+                            or longer future copy.
+                          On-page for humans, meta for
+                          robots — different surfaces,
+                          different copy jobs.
+       v33 (2026-04-20) — Fraunces on the hero h1.
+                          Ron's call — pulling the serif
+                          from 0utput.co means the whole
+                          0fam family shares a display
+                          typeface at the top of the funnel.
+                          Loaded via Google Fonts variable
+                          axes (opsz 9..144, wght 400..800,
+                          SOFT 0..100). Applied only to
+                          .hero h1 with:
+                          • font-variation-settings:
+                            opsz 144, SOFT 50 — the large
+                            optical size + warmth of the
+                            SOFT axis at midpoint
+                          • clamp 34-52px (bumped slightly
+                            from 32-48; serifs read ~5%
+                            smaller optically, so compensate)
+                          • weight 700 (was 800 — serifs
+                            don't need as much weight to
+                            hold presence)
+                          Nothing else changed. Form labels
+                          Inter, body copy Inter, buttons
+                          Inter, resume output Inter. The
+                          serif lives at the hero only —
+                          personality where it greets the
+                          user, neutrality everywhere else.
+                          Strikethrough on "iconic" still
+                          works (CSS text-decoration is
+                          font-agnostic).
        v32 (2026-04-20) — Picker icon color story. Previous
                           default was --muted (6B7F77 gray-
                           green) which read as drab and
@@ -881,10 +943,12 @@
       margin: 28px 0 32px;
     }
     .hero h1 {
-      font-size: clamp(32px, 6vw, 48px);
-      line-height: 1.05;
+      font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+      font-variation-settings: 'opsz' 144, 'SOFT' 50;
+      font-size: clamp(34px, 6.5vw, 52px);
+      line-height: 1.02;
       letter-spacing: -0.02em;
-      font-weight: 800;
+      font-weight: 700;
       margin: 0 0 12px;
     }
     .hero h1 .defunct {
@@ -896,7 +960,7 @@
       font-size: 17px;
       color: var(--muted);
       margin: 0;
-      max-width: 560px;
+      text-wrap: pretty;
     }
     .hero p + p {
       margin-top: 10px;
@@ -1509,8 +1573,8 @@
     <section class="form-view" id="formView">
       <div class="hero">
         <h1>Your resume, but at <span class="defunct">iconic</span> defunct American companies.</h1>
-        <p>Fill out the form. Get a cleanly formatted resume full of bankrupt Fortune 500 names. Print it, share it, frame it.</p>
-        <p>No one can prove you <em>didn't</em> work at these companies.</p>
+        <p>Fill out the form. Get a clean resume full of bankrupt Fortune 500 names.</p>
+        <p>Print it, share it, frame it.</p>
       </div>
 
       <form class="card" id="resumeForm" novalidate>
@@ -1728,7 +1792,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-30</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-32</span>
     </div>
   </div>
 
