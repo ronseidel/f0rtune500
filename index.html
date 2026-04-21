@@ -36,8 +36,36 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-29.html
+       File: f0rtune500-20260420-30.html
        Changelog:
+       v32 (2026-04-20) — Picker icon color story. Previous
+                          default was --muted (6B7F77 gray-
+                          green) which read as drab and
+                          made the form feel utilitarian
+                          despite the structure being right.
+                          New progression across icon
+                          states, all green-family:
+                          • Default: --accent-soft
+                            (#77BFA3 light, #4A9B7E dark)
+                          • Hover: --ink (reads as "deep"
+                            / near-black within the green
+                            palette)
+                          • Selected: --accent (brand green)
+                          Soft→deep→bold = "I'm friendly" →
+                          "you're touching me" → "locked in."
+                          Added --accent-soft to the palette
+                          vars in both light and dark modes.
+                          Form now reads as cohesively green
+                          at rest, with clear stateful
+                          affordances on interaction.
+                          No font change — my call is the
+                          drab was the gray icons, not
+                          Inter. If more character is still
+                          wanted, isolated Space Grotesk on
+                          the hero h1 only is the low-risk
+                          next step; Inter elsewhere keeps
+                          resume neutrality which IS the
+                          joke.
        v31 (2026-04-20) — Removed career-level quips. In
                           practice the quip was narrating
                           what the icon + name already
@@ -786,27 +814,29 @@
        ============================================================= */
 
     :root {
-      --bg:       #F9F9F9;
-      --ink:      #034D32;
-      --accent:   #028454;
-      --accent-bg:#E4F3EE;
-      --border:   #C0DDD4;
-      --mint:     #00BD78;
-      --muted:    #6B7F77;
-      --paper:    #FFFFFF;
-      --shadow:   0 1px 2px rgba(3, 77, 50, 0.06), 0 8px 24px rgba(3, 77, 50, 0.08);
+      --bg:          #F9F9F9;
+      --ink:         #034D32;
+      --accent:      #028454;
+      --accent-soft: #77BFA3;
+      --accent-bg:   #E4F3EE;
+      --border:      #C0DDD4;
+      --mint:        #00BD78;
+      --muted:       #6B7F77;
+      --paper:       #FFFFFF;
+      --shadow:      0 1px 2px rgba(3, 77, 50, 0.06), 0 8px 24px rgba(3, 77, 50, 0.08);
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg:       #0E1613;
-        --ink:      #E4F3EE;
-        --accent:   #00BD78;
-        --accent-bg:#14352A;
-        --border:   #1F3A30;
-        --muted:    #8FA59C;
-        --paper:    #141D1A;
-        --shadow:   0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+        --bg:          #0E1613;
+        --ink:         #E4F3EE;
+        --accent:      #00BD78;
+        --accent-soft: #4A9B7E;
+        --accent-bg:   #14352A;
+        --border:      #1F3A30;
+        --muted:       #8FA59C;
+        --paper:       #141D1A;
+        --shadow:      0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
       }
     }
 
@@ -956,7 +986,7 @@
     .picker-card svg.picker-icon {
       width: 24px;
       height: 24px;
-      color: var(--muted);
+      color: var(--accent-soft);
       transition: color .12s ease;
       flex-shrink: 0;
     }
@@ -982,7 +1012,7 @@
         transform: translateY(-1px);
       }
       .picker-card:hover svg.picker-icon {
-        color: var(--accent);
+        color: var(--ink);
       }
     }
     .picker-card:has(input:checked) {
@@ -1698,7 +1728,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-29</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-30</span>
     </div>
   </div>
 
