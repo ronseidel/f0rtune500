@@ -36,8 +36,149 @@
   <style>
     /* =============================================================
        f0rtune500 — satirical resume generator (0fam)
-       File: f0rtune500-20260420-24.html
+       File: f0rtune500-20260420-28.html
        Changelog:
+       v30 (2026-04-20) — Copy + spacing polish.
+                          • "Full name" → "Your name". Ron's
+                            call — the old label read as "none
+                            of your business" officious. Softer,
+                            matches the form's tone.
+                          • App footer: version line margin-
+                            top 4→10px. The v202604xx-xx string
+                            was sitting too close under the
+                            "0fam app · satire, not career
+                            advice" line.
+                          • Optional flair accordion: vertical
+                            margins 20→32px both sides; padding-
+                            top on the dashed rule 20→28px. Adds
+                            a calmer pause around the Easter-egg
+                            trigger so it doesn't feel jammed
+                            between the career quip and the
+                            Generate button.
+                          • Tests still green; form spacing
+                            changes don't affect the resume
+                            render.
+       v29 (2026-04-20) — Optional flair accordion. Previously
+                          the full optional section (14 fields
+                          including the joke ones) was always
+                          visible on load, which pushed the
+                          Generate button way below the fold
+                          and gave away the joke without the
+                          user having to lean in.
+                          Wrapped the section in native
+                          <details>/<summary>, collapsed by
+                          default. Summary shows "Optional
+                          flair" + chevron that rotates 180°
+                          when open via CSS transition. No JS
+                          needed — browser handles
+                          expand/collapse and keyboard
+                          accessibility natively.
+                          Form semantics preserved: values
+                          typed into fields inside a closed
+                          <details> still submit via
+                          FormData. Verified with a probe
+                          (open → fill → close → FormData
+                          includes values).
+                          UX wins: (1) initial form is short,
+                          required-only, ~4 things to decide.
+                          (2) PornHub/MySpace/Friendster
+                          fields become an Easter egg for
+                          users who open the flair.
+                          Chevron: inlined SVG with stroke-
+                          width 2 to match the pre-existing
+                          select-arrow style (smaller 14px
+                          size, so thinner stroke would be
+                          fine, but this chevron is the only
+                          non-picker icon on the form and
+                          benefits from the weight).
+       v28 (2026-04-20) — Form + footer polish.
+                          Industry cards: min-height 96→78px,
+                          padding 16/14→12px, icon 28→24px,
+                          gap 8→6px. Stops the cards feeling
+                          top-heavy with wasted airspace
+                          above the label.
+                          All Lucide icon strokes dropped from
+                          Lucide default 2px to 1.5px. Feels
+                          more refined at 24px without
+                          legibility cost on the selected
+                          (accent-color) state.
+                          Career cards: removed inline quips.
+                          Cards now match industry's
+                          icon+name rhythm. The quip reveals
+                          below the grid as a single
+                          italic muted line, updated via JS
+                          when a new level is selected.
+                          Default empty state reserves 22px of
+                          height so the grid doesn't jump.
+                          Resume footer: replaced the centered
+                          "satire · built with f0rtune500"
+                          line with a two-column row. Left:
+                          "Thanks for your consideration."
+                          (always), optional sign-off block if
+                          the user picked a salutation
+                          ("Warmly," / name). Right: "built
+                          with f0rtune500" in Space Mono,
+                          muted, small. Dashed rule divider
+                          above.
+                          Salutation moved from top of resume
+                          to bottom — email signatures live
+                          where sign-offs live.
+                          Dropped the "satire" descriptor —
+                          the app name (with the zero) and
+                          the company list telegraph the joke
+                          without needing a label.
+                          Content budget: +6px across all
+                          scenarios (footer is slightly taller
+                          with the closing line). Max natural
+                          is now 924px / letter budget 1061px.
+                          Still safely under.
+       v27 (2026-04-20) — Form redesign.
+                          • Industry <select> → 8-card jumbo
+                            picker grid with Lucide icons
+                            (ShoppingBag, Cpu, Landmark,
+                            Clapperboard, Plane, Car, Utensils,
+                            Zap). Inlined SVG — no icon CDN.
+                          • Career level <select> → 5-card grid
+                            with icon + quip (Entry "hey guys how
+                            can i help?!", Mid "honey, i got
+                            promoted", Senior "just move, i'll
+                            fix it", Exec "how do i open this
+                            PDF?", C-Suite "who hired these
+                            idiots?").
+                          • Radio buttons hidden, labels styled
+                            as cards. Selected state via
+                            :has(input:checked) on the label —
+                            accent border + accent-bg fill +
+                            accent icon color.
+                          • Hover state (desktop only via
+                            @media (hover: hover)) lifts card 1px
+                            and tints border accent.
+                          • New "Optional flair" section below
+                            requireds, dashed border divider.
+                          • Added fields: Salutation (dropdown
+                            with "Warmly,", "Best,", "Sent from
+                            my iPhone," etc.), Blood type
+                            (dropdown with A+, AB-, and jokes
+                            like "Cold-pressed", "Gluten-free",
+                            "Full-fat"), Portfolio, GitHub,
+                            Dribbble, Spotify, SoundCloud,
+                            PornHub, MySpace, Friendster.
+                          • Existing Email/Phone/Location/
+                            LinkedIn moved into the optional
+                            section.
+                          • Render updates: salutation renders as
+                            small italic muted line above name
+                            (email-signature-on-resume joke);
+                            blood type appends to contact line;
+                            any filled social fields produce a
+                            new "Around the Web" section with
+                            platform labels in muted + handles in
+                            ink, middle-dot separated.
+                          • Test harness updated: radio clicks
+                            instead of <select> .select(). All 7
+                            scenarios still pass; no content
+                            budget impact (empty optional section
+                            = zero added height).
        v26 (2026-04-20) — Root cause found: iOS Safari text
                           autosizer. Diagnosed by measuring Ron's
                           uploaded render pixel-by-pixel:
@@ -737,6 +878,172 @@
       .grid { grid-template-columns: 1fr; }
     }
 
+    /* ----- Picker grids (industry, career level) ----- */
+    .picker-fieldset {
+      border: 0;
+      padding: 0;
+      margin: 0 0 20px;
+    }
+    .picker-fieldset legend {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 10px;
+      letter-spacing: 0.01em;
+      padding: 0;
+    }
+    .picker-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 700px) {
+      .picker-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .picker-grid--career {
+      grid-template-columns: repeat(5, 1fr);
+    }
+    @media (max-width: 780px) {
+      .picker-grid--career { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 520px) {
+      .picker-grid--career { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .picker-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 10px;
+      min-height: 78px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease, box-shadow .12s ease;
+    }
+    .picker-card--career { min-height: 78px; padding: 12px 10px; }
+
+    .picker-card input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 0;
+      height: 0;
+    }
+    .picker-card svg.picker-icon {
+      width: 24px;
+      height: 24px;
+      color: var(--muted);
+      transition: color .12s ease;
+      flex-shrink: 0;
+    }
+    .picker-card .picker-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+    .picker-card .picker-quip {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.3;
+      font-style: italic;
+      margin-top: auto;
+    }
+
+    /* The quip that appears below the career grid — updates to match
+       whatever career level is currently selected. Fixed min-height
+       so the grid layout doesn't jump when the quip appears. */
+    .career-quip {
+      min-height: 22px;
+      margin-top: 14px;
+      text-align: center;
+      font-size: 14px;
+      font-style: italic;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    @media (hover: hover) {
+      .picker-card:hover {
+        border-color: var(--accent);
+        background: var(--paper);
+        transform: translateY(-1px);
+      }
+      .picker-card:hover svg.picker-icon {
+        color: var(--accent);
+      }
+    }
+    .picker-card:has(input:checked) {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    .picker-card:has(input:checked) svg.picker-icon {
+      color: var(--accent);
+    }
+    .picker-card:has(input:focus-visible) {
+      box-shadow: 0 0 0 3px var(--accent-bg);
+    }
+
+    /* ----- Optional flair accordion ----- */
+    .optional-section {
+      margin: 32px 0 32px;
+      padding-top: 28px;
+      border-top: 1px dashed var(--border);
+    }
+    .optional-section summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      list-style: none;
+      padding: 2px 0;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: color .15s ease;
+    }
+    .optional-section summary::-webkit-details-marker { display: none; }
+    .optional-section summary::marker { content: ''; }
+    .optional-section summary .chevron {
+      width: 14px;
+      height: 14px;
+      color: var(--muted);
+      transition: transform .2s ease, color .15s ease;
+      flex-shrink: 0;
+    }
+    .optional-section[open] summary .chevron {
+      transform: rotate(180deg);
+    }
+    @media (hover: hover) {
+      .optional-section summary:hover {
+        color: var(--accent);
+      }
+      .optional-section summary:hover .chevron {
+        color: var(--accent);
+      }
+    }
+    .optional-section summary:focus-visible {
+      outline: 2px solid var(--accent-bg);
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+    .optional-section-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 10px 0 14px;
+    }
+
     label {
       display: block;
       font-size: 13px;
@@ -1002,6 +1309,43 @@
       margin: 0;
     }
 
+    .r-footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
+    }
+    .r-closing {
+      flex: 1 1 auto;
+    }
+    .r-closing-line {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 4px;
+    }
+    .r-signoff {
+      font-size: 13px;
+      font-style: italic;
+      color: var(--muted);
+      margin: 6px 0 2px;
+    }
+    .r-signoff-name {
+      font-size: 13px;
+      color: var(--ink);
+      margin: 0;
+    }
+    .r-builtwith {
+      flex: 0 0 auto;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
     .r-satire {
       margin-top: 32px;
       padding-top: 16px;
@@ -1028,7 +1372,7 @@
     }
     .footer-meta .version {
       display: block;
-      margin-top: 4px;
+      margin-top: 10px;
       font-variant-numeric: tabular-nums;
       opacity: 0.7;
       user-select: all;
@@ -1137,57 +1481,195 @@
       <form class="card" id="resumeForm" novalidate>
         <div class="grid">
           <div class="full">
-            <label for="name">Full name</label>
+            <label for="name">Your name</label>
             <input id="name" name="name" type="text" autocomplete="name" required placeholder="Jane Q. Executive" />
           </div>
-
-          <div>
-            <label for="email">Email <span class="opt">optional</span></label>
-            <input id="email" name="email" type="text" autocomplete="email" placeholder="jane@example.com" />
-          </div>
-
-          <div>
-            <label for="location">Location <span class="opt">optional</span></label>
-            <input id="location" name="location" type="text" autocomplete="address-level2" placeholder="Brooklyn, NY" />
-          </div>
-
-          <div>
-            <label for="linkedin">LinkedIn <span class="opt">optional</span></label>
-            <input id="linkedin" name="linkedin" type="text" placeholder="linkedin.com/in/janeq" />
-          </div>
-
-          <div>
-            <label for="phone">Phone <span class="opt">optional</span></label>
-            <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="(555) 012-3456" />
-          </div>
-
-          <div>
-            <label for="industry">Industry</label>
-            <select id="industry" name="industry" required>
-              <option value="" disabled selected>Choose an industry…</option>
-              <option value="retail">Retail</option>
-              <option value="tech">Tech &amp; Internet</option>
-              <option value="finance">Finance &amp; Banking</option>
-              <option value="media">Media &amp; Entertainment</option>
-              <option value="airlines">Airlines &amp; Travel</option>
-              <option value="auto">Automotive</option>
-              <option value="food">Food &amp; Restaurants</option>
-              <option value="energy">Energy &amp; Utilities</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="career">Career level</label>
-            <select id="career" name="career" required>
-              <option value="" disabled selected>Choose a level…</option>
-              <option value="entry">Entry Level</option>
-              <option value="mid">Mid-Level</option>
-              <option value="senior">Senior</option>
-              <option value="exec">Executive</option>
-              <option value="csuite">C-Suite</option>
-            </select>
-          </div>
         </div>
+
+        <!-- ============ Industry ============ -->
+        <fieldset class="picker-fieldset" style="margin-top:20px">
+          <legend>Industry</legend>
+          <div class="picker-grid" id="industryGrid">
+            <label class="picker-card">
+              <input type="radio" name="industry" value="retail" required>
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              <span class="picker-name">Retail</span>
+            </label>
+            <label class="picker-card">
+              <input type="radio" name="industry" value="tech">
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
+              <span class="picker-name">Tech &amp; Internet</span>
+            </label>
+            <label class="picker-card">
+              <input type="radio" name="industry" value="finance">
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
+              <span class="picker-name">Finance &amp; Banking</span>
+            </label>
+            <label class="picker-card">
+              <input type="radio" name="industry" value="media">
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+              <span class="picker-name">Media &amp; Entertainment</span>
+            </label>
+            <label class="picker-card">
+              <input type="radio" name="industry" value="airlines">
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+              <span class="picker-name">Airlines &amp; Travel</span>
+            </label>
+            <label class="picker-card">
+              <input type="radio" name="industry" value="auto">
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+              <span class="picker-name">Automotive</span>
+            </label>
+            <label class="picker-card">
+              <input type="radio" name="industry" value="food">
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+              <span class="picker-name">Food &amp; Restaurants</span>
+            </label>
+            <label class="picker-card">
+              <input type="radio" name="industry" value="energy">
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+              <span class="picker-name">Energy &amp; Utilities</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- ============ Career level ============ -->
+        <fieldset class="picker-fieldset">
+          <legend>Career level</legend>
+          <div class="picker-grid picker-grid--career">
+            <label class="picker-card">
+              <input type="radio" name="career" value="entry" required>
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+              <span class="picker-name">Entry Level</span>
+            </label>
+            <label class="picker-card">
+              <input type="radio" name="career" value="mid">
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+              <span class="picker-name">Mid-Level</span>
+            </label>
+            <label class="picker-card">
+              <input type="radio" name="career" value="senior">
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              <span class="picker-name">Senior</span>
+            </label>
+            <label class="picker-card">
+              <input type="radio" name="career" value="exec">
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+              <span class="picker-name">Executive</span>
+            </label>
+            <label class="picker-card">
+              <input type="radio" name="career" value="csuite">
+              <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg>
+              <span class="picker-name">C-Suite</span>
+            </label>
+          </div>
+          <div class="career-quip" id="careerQuip" aria-live="polite"></div>
+        </fieldset>
+
+        <!-- ============ Optional flair (accordion) ============ -->
+        <details class="optional-section">
+          <summary>
+            <span>Optional flair</span>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </summary>
+          <p class="optional-section-sub">All of this is optional. Some of it is a joke. None of it is required.</p>
+          <div class="grid">
+            <div>
+              <label for="salutation">Sign-off <span class="opt">optional</span></label>
+              <select id="salutation" name="salutation">
+                <option value="">— none —</option>
+                <option value="Best,">Best,</option>
+                <option value="Best regards,">Best regards,</option>
+                <option value="Warmly,">Warmly,</option>
+                <option value="Cheers,">Cheers,</option>
+                <option value="Thanks,">Thanks,</option>
+                <option value="Sincerely,">Sincerely,</option>
+                <option value="Regards,">Regards,</option>
+                <option value="Thx,">Thx,</option>
+                <option value="Sent from my iPhone,">Sent from my iPhone,</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="bloodtype">Blood type <span class="opt">HR loves this</span></label>
+              <select id="bloodtype" name="bloodtype">
+                <option value="">— none —</option>
+                <option value="A+">A+</option>
+                <option value="A−">A−</option>
+                <option value="B+">B+</option>
+                <option value="B−">B−</option>
+                <option value="AB+">AB+</option>
+                <option value="AB−">AB−</option>
+                <option value="O+">O+</option>
+                <option value="O−">O−</option>
+                <option value="Cold-pressed">Cold-pressed</option>
+                <option value="Organic">Organic</option>
+                <option value="Gluten-free">Gluten-free</option>
+                <option value="Full-fat">Full-fat</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="email">Email <span class="opt">optional</span></label>
+              <input id="email" name="email" type="text" autocomplete="email" placeholder="jane@example.com" />
+            </div>
+
+            <div>
+              <label for="phone">Phone <span class="opt">optional</span></label>
+              <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="(555) 012-3456" />
+            </div>
+
+            <div>
+              <label for="location">Location <span class="opt">optional</span></label>
+              <input id="location" name="location" type="text" autocomplete="address-level2" placeholder="Brooklyn, NY" />
+            </div>
+
+            <div>
+              <label for="linkedin">LinkedIn <span class="opt">optional</span></label>
+              <input id="linkedin" name="linkedin" type="text" placeholder="linkedin.com/in/janeq" />
+            </div>
+
+            <div>
+              <label for="portfolio">Portfolio <span class="opt">url or handle</span></label>
+              <input id="portfolio" name="portfolio" type="text" placeholder="janeq.design" />
+            </div>
+
+            <div>
+              <label for="github">GitHub <span class="opt">username</span></label>
+              <input id="github" name="github" type="text" placeholder="janeq" />
+            </div>
+
+            <div>
+              <label for="dribbble">Dribbble <span class="opt">username</span></label>
+              <input id="dribbble" name="dribbble" type="text" placeholder="janeq" />
+            </div>
+
+            <div>
+              <label for="spotify">Spotify <span class="opt">username</span></label>
+              <input id="spotify" name="spotify" type="text" placeholder="janeq" />
+            </div>
+
+            <div>
+              <label for="soundcloud">SoundCloud <span class="opt">username</span></label>
+              <input id="soundcloud" name="soundcloud" type="text" placeholder="janeq" />
+            </div>
+
+            <div>
+              <label for="pornhub">PornHub <span class="opt">username</span></label>
+              <input id="pornhub" name="pornhub" type="text" placeholder="bigQforme69" />
+            </div>
+
+            <div>
+              <label for="myspace">MySpace <span class="opt">because why not</span></label>
+              <input id="myspace" name="myspace" type="text" placeholder="xXjanexX" />
+            </div>
+
+            <div>
+              <label for="friendster">Friendster <span class="opt">the original</span></label>
+              <input id="friendster" name="friendster" type="text" placeholder="jane_seidel_42" />
+            </div>
+          </div>
+        </details>
 
         <div class="actions">
           <button type="submit" class="btn">Generate resume →</button>
@@ -1212,7 +1694,7 @@
     </section>
 
     <div class="footer-meta">
-      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-24</span>
+      an <a href="https://0utput.co" target="_blank" rel="noopener">0fam</a> app · satire, not career advice<span class="version">v20260420-28</span>
     </div>
   </div>
 
@@ -1794,13 +2276,57 @@
 
   // ============ RENDER ============
   function render(form, data) {
+    // Contact line: existing fields + blood type on the end if present.
     const contactBits = [];
-    if (form.location) contactBits.push(esc(form.location));
-    if (form.email)    contactBits.push(esc(form.email));
-    if (form.phone)    contactBits.push(esc(form.phone));
-    if (form.linkedin) contactBits.push(esc(form.linkedin));
+    if (form.location)  contactBits.push(esc(form.location));
+    if (form.email)     contactBits.push(esc(form.email));
+    if (form.phone)     contactBits.push(esc(form.phone));
+    if (form.linkedin)  contactBits.push(esc(form.linkedin));
+    if (form.bloodtype) contactBits.push(esc(form.bloodtype));
 
     const contactHTML = contactBits.map(b => `<span>${b}</span>`).join('');
+
+    // Around the Web: list each platform with its handle inline, only
+    // showing platforms the user filled in. Matches the Skills section
+    // format (middle-dot separator) so the layout stays compact.
+    const socialMap = [
+      ['Portfolio',  form.portfolio],
+      ['GitHub',     form.github ? '@' + form.github.replace(/^@/, '') : ''],
+      ['Dribbble',   form.dribbble ? '@' + form.dribbble.replace(/^@/, '') : ''],
+      ['Spotify',    form.spotify ? '@' + form.spotify.replace(/^@/, '') : ''],
+      ['SoundCloud', form.soundcloud ? '@' + form.soundcloud.replace(/^@/, '') : ''],
+      ['PornHub',    form.pornhub ? '@' + form.pornhub.replace(/^@/, '') : ''],
+      ['MySpace',    form.myspace ? '@' + form.myspace.replace(/^@/, '') : ''],
+      ['Friendster', form.friendster ? '@' + form.friendster.replace(/^@/, '') : '']
+    ];
+    const socialBits = socialMap
+      .filter(([, handle]) => handle)
+      .map(([platform, handle]) => `<span style="color:var(--muted)">${platform}</span> ${esc(handle)}`);
+    const socialHTML = socialBits.length
+      ? `<div class="r-section">
+          <h2 style="font-size:11px;font-weight:700;letter-spacing:0.14em;margin:0 0 10px;padding-bottom:6px">Around the Web</h2>
+          <p class="r-skills" style="font-size:13px;font-weight:400;line-height:1.6;margin:0">${socialBits.join(' · ')}</p>
+        </div>`
+      : '';
+
+    // Salutation no longer renders at the top — it now becomes part
+    // of the bottom sign-off block where email signatures live.
+    // Build the bottom closing block: always show the closing line;
+    // show the "[salutation], [name]" block only if a salutation
+    // was picked.
+    const signoffHTML = form.salutation
+      ? `<p class="r-signoff" style="font-size:13px;font-style:italic;color:var(--muted);margin:6px 0 2px">${esc(form.salutation)}</p>
+         <p class="r-signoff-name" style="font-size:13px;color:var(--ink);margin:0">${esc(form.name)}</p>`
+      : '';
+    const footerHTML = `
+      <div class="r-footer" style="margin-top:32px;padding-top:16px;border-top:1px dashed var(--border);display:flex;justify-content:space-between;align-items:flex-end;gap:20px">
+        <div class="r-closing" style="flex:1 1 auto">
+          <p class="r-closing-line" style="font-size:12px;color:var(--muted);margin:0 0 4px">Thanks for your consideration.</p>
+          ${signoffHTML}
+        </div>
+        <div class="r-builtwith" style="flex:0 0 auto;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.04em;white-space:nowrap">built with f0rtune500</div>
+      </div>
+    `;
 
     const rolesHTML = data.roles.map(r => `
       <div class="r-role">
@@ -1834,12 +2360,14 @@
         <p class="r-skills" style="font-size:13px;font-weight:400;line-height:1.6;margin:0">${data.skills.map(esc).join(' · ')}</p>
       </div>
 
+      ${socialHTML}
+
       <div class="r-section">
         <h2 style="font-size:11px;font-weight:700;letter-spacing:0.14em;margin:0 0 10px;padding-bottom:6px">References</h2>
         <p class="r-refs" style="font-size:12px;font-weight:400;font-style:italic;margin:0">${esc(data.references)}</p>
       </div>
 
-      <div class="r-satire">satire · built with f0rtune500</div>
+      ${footerHTML}
     `;
   }
 
@@ -1852,6 +2380,24 @@
   const regenBtn  = document.getElementById('regenBtn');
   const printBtn  = document.getElementById('printBtn');
   const imgBtn    = document.getElementById('imageBtn');
+
+  // Career-level quips — shown under the career grid, swapped when
+  // the user picks a different level. Quips live in JS (not HTML)
+  // now so the cards themselves stay clean icon+name, with the
+  // signature line revealed below the grid on selection.
+  const CAREER_QUIPS = {
+    entry:  '"hey guys how can i help?!"',
+    mid:    '"honey, i got promoted"',
+    senior: "\"just move, i'll fix it\"",
+    exec:   '"how do i open this PDF?"',
+    csuite: '"who hired these idiots?"'
+  };
+  const careerQuipEl = document.getElementById('careerQuip');
+  document.querySelectorAll('input[name="career"]').forEach(radio => {
+    radio.addEventListener('change', e => {
+      if (careerQuipEl) careerQuipEl.textContent = CAREER_QUIPS[e.target.value] || '';
+    });
+  });
 
   /* =============================================================
      canReliablyPrint() — desktop-only allowlist (v13)
